@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Point.h"
+#include "BRDF.h"
 
 class Object;
 
@@ -22,6 +23,8 @@ public:
 		objectp(obj), a(_a), b(_b), c(_c)
 	{}
 
+	
+	BRDF* queryBRDF();
 
 	inline friend double queryIntersectTime(const Face &f, const Point &s, const Point &dir);
 	inline friend bool checkPointInFace(const Face &f, const Point &s);

@@ -148,18 +148,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
+    <ClInclude Include="BitmapArray.h" />
+    <ClInclude Include="BRDF.h" />
     <ClInclude Include="Face.h" />
     <ClInclude Include="KDtree.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="Path.h" />
     <ClInclude Include="Point.h" />
+    <ClInclude Include="RayTracing.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bitmap.cpp" />
+    <ClCompile Include="BitmapArray.cpp" />
     <ClCompile Include="Face.cpp" />
     <ClCompile Include="KDtree.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Path.cpp" />
     <ClCompile Include="RayTracing.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

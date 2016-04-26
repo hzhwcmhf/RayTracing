@@ -123,3 +123,5 @@ public:
 		return cross(a - o, b - o);
 	}
 };
+
+typedef Point Color;

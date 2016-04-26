@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "RayTracing.h"
 
 #include "Bitmap.h"
 #include "Point.h"
@@ -8,20 +9,7 @@
 
 
 
-class RayTracing
-{
-private:
 
-public:
-	Bitmap work()
-	{
-		//initialize
-
-
-		//¹âÏß×·×Ù
-
-	}
-};
 
 
 
@@ -32,7 +20,7 @@ int main()
 	KDtree tree;
 	tree.addObject(obj);
 	tree.buildTree();
-	srand(time(0));
+	srand((int)time(0));
 	for (int i = 1;i <= 10000;i++) {
 		Point s{ rand() % 10 - 5.,(rand() % 1000)/100. - 5.,rand() % 10 - 5. };
 		Point d = obj.p[rand() % obj.p.size()] - s;
