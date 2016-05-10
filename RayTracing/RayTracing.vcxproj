@@ -156,6 +156,7 @@
     <ClInclude Include="Path.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="RayTracing.h" />
+    <ClInclude Include="ReflectRecord.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -167,6 +168,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Path.cpp" />
     <ClCompile Include="RayTracing.cpp" />
+    <ClCompile Include="ReflectRecord.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

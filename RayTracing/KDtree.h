@@ -47,19 +47,21 @@ private:
 
 	const static int FaceNumOfLeaf = 64;
 	const static int LeastDecrease = 4;
-public:
 
-	void addObject(const Object& p);
 	Node* buildTree_subtree(const std::vector<const Face*> &fp, const BorderBox &box);
 	std::tuple<double, double, int, int>
 		buildTree_calculate(const std::vector<const Face*> &fp, Node::Direction d, const BorderBox &box);
 	std::tuple<std::vector<const Face*>, std::vector<const Face*>>
 		buildTree_partition(const std::vector<const Face*> &fp, Node::Direction d, double borderPos);
+
+	std::tuple<const Face*, double> queryNode(const Node* node, const Point & s, const Point & dir, const Face* ignore) const;
+public:
+
+	void addObject(const Object& p);
 	void buildTree();
 
-	const Face* queryNode(const Node* node, const Point & s, const Point & dir, const Face* ignore) const;
-	const Face* query(const Point &s, const Point &dir, const Face* ignore = nullptr) const;
-	const Face* queryBF(const Point &s, const Point &dir, const Face* ignore = nullptr) const;
+	std::tuple<const Face*, Point> query(const Point &s, const Point &dir, const Face* ignore = nullptr) const;
+	std::tuple<const Face*, Point> queryBF(const Point &s, const Point &dir, const Face* ignore = nullptr) const;
 
 	template<class T>
 	inline static void tension(T &a, const T &b)

@@ -12,6 +12,7 @@
 
 
 
+//折射强度和角度有关吗？？？
 
 int main()
 {
@@ -24,8 +25,8 @@ int main()
 	for (int i = 1;i <= 10000;i++) {
 		Point s{ rand() % 10 - 5.,(rand() % 1000)/100. - 5.,rand() % 10 - 5. };
 		Point d = obj.p[rand() % obj.p.size()] - s;
-		const Face* p = tree.query(s, d);
-		if(p)std::cerr << p << std::endl;
+		auto p = tree.query(s, d);
+		if(std::get<0>(p))std::cerr << std::get<0>(p) << std::endl;
 		/*const Face* q = tree.queryBF(s, d);
 		if(q)std::cerr << q << std::endl;
 		if (p != q) {
@@ -43,4 +44,3 @@ int main()
 	std::cerr << clock() << std::endl;
 	return 0;
 }
-

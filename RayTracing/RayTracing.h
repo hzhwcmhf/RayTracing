@@ -3,6 +3,7 @@
 #include "Bitmap.h"
 #include "BitmapArray.h"
 #include "Path.h"
+#include "KDtree.h"
 
 class RayTracing
 {
@@ -11,13 +12,13 @@ private:
 	{
 		BitmapArray barr(FinalWidth, FinalHeight);
 		for (int mt = 0;mt < MutateTimes; mt++) {
-			double pro;
-			Path p2;
-			std::tie(p2, pro) = p.mutate();
+			auto tmp = p.mutate();
+			auto &p2 = std::get<0>(tmp);
+			double pro = std::get<1>(tmp);
 			p.record(barr, 1 - pro);
 			p2.record(barr, pro);
 			if (rand() < pro * RAND_MAX) {
-				p = p2;
+				p = std::move(p2);
 			}
 		}
 		return barr;
@@ -55,6 +56,8 @@ public:
 		return sampleSum.transformToBitmap(FinalRGBMax);
 	}
 
-	std::tuple<Point, BRDF*> queryEye();
-	std::vector<std::tuple<Point, BRDF*>> queryLights();
+	ReflectRecord queryEye();
+	ReflectRecord queryLight();
+	std::tuple<int, int> queryImagePos(const Point &dir);
+	const KDtree* queryKDtree();
 };

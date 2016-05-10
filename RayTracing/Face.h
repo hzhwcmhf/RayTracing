@@ -1,33 +1,37 @@
 #pragma once
 
 #include "Point.h"
-#include "BRDF.h"
 
 class Object;
 
 class Face
 {
 private:
-	Object* objectp;
+	
 public:
+	Object* objectp;
 	union {
 		struct { /*数组索引*/Vertex p[3]; };
 		struct { /*变量索引*/Vertex a, b, c; };
+	};
+	union {
+		struct { /*数组索引*/Vertex pn[3]; };
+		struct { /*变量索引*/Vertex an, bn, cn; };
 	};
 
 	Face() {
 		objectp = nullptr;
 		a = b = c = nullptr;
+		an = bn = cn = nullptr;
 	}
-	Face(Object* obj, Vertex _a, Vertex _b, Vertex _c) :
-		objectp(obj), a(_a), b(_b), c(_c)
+	Face(Object* obj, Vertex _a, Vertex _b, Vertex _c, Vertex _an, Vertex _bn, Vertex _cn) :
+		objectp(obj), a(_a), b(_b), c(_c), an(_an), bn(_bn), cn(_cn)
 	{}
-
-	
-	BRDF* queryBRDF();
 
 	inline friend double queryIntersectTime(const Face &f, const Point &s, const Point &dir);
 	inline friend bool checkPointInFace(const Face &f, const Point &s);
+
+	inline Point getNormalVector(const Point &hitpoint) const;
 };
 
 inline double queryIntersectTime(const Face & f, const Point & s, const Point & dir)
@@ -93,3 +97,11 @@ inline bool checkPointInFace(const Face & f, const Point & s)
 	double sum = ASB + BSC + CSA;
 
 }*/
+
+inline Point Face::getNormalVector(const Point &hitpoint) const
+{
+	double ASB = norm(cross(*a, hitpoint, *b));
+	double BSC = norm(cross(*b, hitpoint, *c));
+	double CSA = norm(cross(*c, hitpoint, *a));
+	return ((*an) * BSC + (*bn) * CSA + (*cn) * ASB) / (ASB + BSC + CSA);
+}

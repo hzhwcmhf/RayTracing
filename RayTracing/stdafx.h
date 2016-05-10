@@ -21,6 +21,7 @@
 #include <ctime>
 #include <cassert>
 #include <fstream>
+#include <cmath>
 
 #include <omp.h>  
 #include "windows.h"
@@ -28,10 +29,12 @@
 #undef max
 
 const double eps = 1e-10;
+const double PI = acos(-1);
 
-const static int SampleTimes = 100;
-const static int FinalWidth = 480, FinalHeight = 360;
-const static int FinalRGBMax = 255;
-const static int MutateTimes = 10000;
-const static int PathMaxDiffuseTimes = 2;
-const static double PathDiffuseProbability = 0.5;
+const int SampleTimes = 100;
+const int FinalWidth = 480, FinalHeight = 360;
+const int FinalRGBMax = 255;
+const int MutateTimes = 10000;
+const int PathMaxDiffuseTimes = 2;
+const int SubpathMaxSpecularTimes = 30;
+const double PathDiffuseProbability = 0.5;

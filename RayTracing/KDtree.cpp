@@ -236,14 +236,14 @@ void KDtree::buildTree()
 }
 
 
-const Face * KDtree::queryNode(const Node* node, const Point & s, const Point & dir, const Face* ignore) const
+std::tuple<const Face*, double> KDtree::queryNode(const Node* node, const Point & s, const Point & dir, const Face* ignore) const
 {
-	G_cnt++;
 	if (node->direction == Node::leaf) {
 		double bestt = INFINITY;
 		const Face* res = nullptr;
 		for (int i = node->l; i < node->r; i++) {
 			if (fp[i] == ignore) continue;
+			G_cnt++;
 			double t = queryIntersectTime(*fp[i], s, dir);
 			assert(t >= 0);
 			if (t < eps)
@@ -252,33 +252,33 @@ const Face * KDtree::queryNode(const Node* node, const Point & s, const Point & 
 				res = fp[i], bestt = t;
 			}
 		}
-		return res;
+		return std::make_tuple(res, bestt);
 	}
 
 	double leftt = queryIntersectTime(node->lc->box, s, dir);
 	double rightt = queryIntersectTime(node->rc->box, s, dir);
-	if (isinf(leftt) && isinf(rightt)) return nullptr;
+	if (isinf(leftt) && isinf(rightt)) return std::make_tuple(nullptr, INFINITY);
 	if (leftt < rightt) {
-		const Face* res = queryNode(node->lc, s, dir, ignore);
-		if (res) return res;
+		auto res = queryNode(node->lc, s, dir, ignore);
+		if (std::get<0>(res)) return res;
 		if(!isinf(rightt)) return queryNode(node->rc, s, dir, ignore);
 	}else{
-		const Face* res = queryNode(node->rc, s, dir, ignore);
-		if (res) return res;
+		auto res = queryNode(node->rc, s, dir, ignore);
+		if (std::get<0>(res)) return res;
 		if(!isinf(leftt)) return queryNode(node->lc, s, dir, ignore);
 	}
-	return nullptr;
+	return std::make_tuple(nullptr, INFINITY);
 }
 
-const Face* KDtree::query(const Point & s, const Point & dir, const Face* ignore/* = nullptr*/) const
+std::tuple<const Face*, Point> KDtree::query(const Point & s, const Point & dir, const Face* ignore/* = nullptr*/) const
 {
 	G_cnt = 0;
-	const Face* res = queryNode(root, s, dir, ignore);
+	auto res = queryNode(root, s, dir, ignore);
 	std::cerr << G_cnt << std::endl;
-	return res;
+	return std::make_tuple(std::get<0>(res), std::get<1>(res) * dir + s);
 }
 
-const Face * KDtree::queryBF(const Point & s, const Point & dir, const Face * ignore) const
+std::tuple<const Face*, Point> KDtree::queryBF(const Point & s, const Point & dir, const Face * ignore) const
 {
 	double bestt = INFINITY;
 	const Face* res = nullptr;
@@ -292,7 +292,7 @@ const Face * KDtree::queryBF(const Point & s, const Point & dir, const Face * ig
 			res = fp[i], bestt = t;
 		}
 	}
-	return res;
+	return std::make_tuple(res, s + dir * bestt);
 }
 
 double queryIntersectTime(const KDtree::BorderBox & box, const Point & s, const Point & dir)

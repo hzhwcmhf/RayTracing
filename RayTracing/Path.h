@@ -3,29 +3,31 @@
 #include "BitmapArray.h"
 #include "Point.h"
 #include "Face.h"
-#include "BRDF.h"
+#include "ReflectRecord.h"
 
 class RayTracing;
 
 struct SubPath
 {
 	RayTracing* rt;
-	Point startPos, startDir;
-	Point endPos, endDir;
+	HalfReflectRecord startR, endR;
 
-	std::vector<Face*> inner;
+	std::vector<ReflectRecord> inner;
 
-	Color F;
+	Color luminiance;
+	double randomProbability;
 
 	SubPath(RayTracing* r);
-
 	
-	//从startPos开始沿startDir拓展，获取inner、F，返回end面(注意超过层数要返回)
-	Face* extend(const Point &_startPos, const Point &_startDir);
-	Face* extend();
-	//检查是否遮挡，获取F
-	void checkShadow(const Point &_startPos, const Point &_endPos);
-	void checkShadow();
+	//从startPos开始沿startDir拓展，获取inner、luminiance，返回end面(注意超过层数要返回)
+	ReflectRecord extend(const HalfReflectRecord &start);
+	ReflectRecord extend();
+	
+
+	//emplictLight
+	bool checkShadow(const HalfReflectRecord &start, const Face* endFace);
+
+
 	//翻转路径
 	void reverse();
 };
@@ -34,12 +36,23 @@ class Path
 {
 private:
 	RayTracing* rt;
-	std::vector<BRDF*> brdfs;
-	std::vector<SubPath> subpaths;
+	std::vector<ReflectRecord> eyeBRDF, lightBRDF;
+	std::vector<SubPath> eyePath, lightPath;
 
-	//漫反射次数和光源造成的概率
-	double diffuseAndLightProbability;
+	ReflectRecord shadowEyeBRDF, shadowLightBRDF;
+	SubPath shadowPath;
+	double shadowDistance;
+
+	Color luminiance;
+	double diffuseAndLightProbability;//散射次数和光源造成的取样概率
+	double randomProbability; //随机采样时的取样概率
+
+	//计算luminiance和randomProbability
+	void calLuminianceAndRandomProbability();
+	//计算shadowDisatance
+	bool checkShadow();
 public:
+	Path(RayTracing* r);
 	static Path makeRandomPath(RayTracing* r);
 	std::tuple<Path, double> mutate();
 	void record(BitmapArray& barr, double w);

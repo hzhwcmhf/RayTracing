@@ -25,6 +25,10 @@ public:
 	{
 		return Point { x - b.x, y - b.y, z - b.z };
 	}
+	Point operator-() const
+	{
+		return Point(-x, -y, -z);
+	}
 	Point operator-=(const Point &b)
 	{
 		x -= b.x, y -= b.y, z -= b.z;
@@ -32,6 +36,16 @@ public:
 	Point operator*(double p) const
 	{
 		return Point{ p*x, p*y, p*z };
+	}
+	Point& operator*=(const Point &p)
+	{
+		x *= p.x, y *= p.y, z *= p.z;
+		return *this;
+	}
+	Point& operator*=(double p)
+	{
+		x *= p, y *= p, z *= p;
+		return *this;
 	}
 	friend Point operator*(double p, const Point &x)
 	{
@@ -124,4 +138,9 @@ public:
 	}
 };
 
-typedef Point Color;
+
+typedef Point Color;//r g b
+inline double queryLuminiance(const Color &c)
+{
+	return c.x*0.299 + c.y*0.587 + c.z*0.114;
+}
