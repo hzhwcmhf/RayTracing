@@ -7,12 +7,12 @@ void ReflectRecord::generateDiffuse()
 	randomProbability = face->objectp->kdL;
 	type = diffuse;
 
-	double t = pow((double)rand() / RAND_MAX, 1. / 3); //sqrt(x2+y2) 随机取样 按cos(theta)的概率分布
-	double deg = rand() * PI * 2 / RAND_MAX;
-	double z = sqrt(1 - t * t);
-	double x = cos(deg) * t, y = sin(deg) * t;
+	double u = (double)rand() / RAND_MAX;	//按面积取样 TODO tmp
+	double phi = rand() * PI * 2 / RAND_MAX;
+	double z = u, t = sqrt(1 - u*u);
+	double x = t*cos(phi), y = t*sin(phi);
+	randomProbability *= 0.5 / PI;
 
-	randomProbability *= z;
 	luminiance = z * face->objectp->kd;
 
 	//旋转到法向量方向
@@ -26,7 +26,7 @@ void ReflectRecord::generateDiffuse()
 	if (xz < eps) sinb = 0, cosb = 1;
 	outdir.x = x * cosb + y * sina * sinb + z * cosa * sinb;
 	outdir.y = y * cosa - z * sina;
-	outdir.z = -x * sinb + y * sina * cosb + z * cosa * cosb;;
+	outdir.z = -x * sinb + y * sina * cosb + z * cosa * cosb;
 }
 
 void ReflectRecord::makeDiffuse(const Point & _outdir)
@@ -45,7 +45,7 @@ void ReflectRecord::makeDiffuse(const Point & _outdir)
 		return;
 	}
 
-	randomProbability *= z;
+	randomProbability *= 0.5 / PI;
 	luminiance = z * face->objectp->kd;
 }
 

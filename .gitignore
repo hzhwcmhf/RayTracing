@@ -246,3 +246,4 @@ ModelManifest.xml
 *.pdf
 *.bmp
 /RayTracing/finalResultWithoutBrightness.txt
+/RayTracing/data

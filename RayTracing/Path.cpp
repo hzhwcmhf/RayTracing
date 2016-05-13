@@ -88,6 +88,7 @@ void Path::calLuminianceAndRandomProbability()
 	luminiance *= shadowEyeBRDF.luminiance;
 	luminiance *= shadowLightBRDF.luminiance;
 	luminiance *= 1 / shadowDistance;
+	//randomProbability *= shadowDistance;
 }
 
 bool Path::checkShadow()
@@ -97,6 +98,7 @@ bool Path::checkShadow()
 	lightBRDF.pop_back();
 
 	shadowDistance = norm(r2.hitpoint - r1.hitpoint);
+	if (shadowDistance < MinShadowDistance) shadowDistance = MinShadowDistance;	//控制距离，太近的话微元取得太大导致奇异
 	Point dir = (r2.hitpoint - r1.hitpoint) / sqrt(shadowDistance);
 	shadowEyeBRDF = ReflectRecord::adjustDiffuse(r1.face, r1.indir, r1.hitpoint, dir);
 	shadowLightBRDF = ReflectRecord::adjustDiffuse(r2.face, r2.indir, r2.hitpoint, -dir);
@@ -136,19 +138,20 @@ Path Path::makeRandomPath(RayTracing * r)
 
 	//漫反射次数采样
 	int diffuseTimes = 1;
-	path.diffuseAndLightProbability *= PathDiffuseProbability;
 	while (diffuseTimes < PathMaxDiffuseTimes) {
 		if (rand() > PathDiffuseProbability * RAND_MAX) break;
 		diffuseTimes++;
 		path.diffuseAndLightProbability *= PathDiffuseProbability;
 	}
+	if (diffuseTimes != PathMaxDiffuseTimes)
+		path.diffuseAndLightProbability *= 1 - PathDiffuseProbability;;
 	//双向路径分裂位置采样
 	path.diffuseAndLightProbability /= diffuseTimes;
 
 	int eyeDiffuseTimes = rand() % diffuseTimes + 1;
 
 	//int diffuseTimes = 2;
-	//int eyeDiffuseTimes = 1;
+	//int eyeDiffuseTimes = 2;
 
 	auto extendPath = [&r](std::vector<SubPath> &vPath, std::vector<ReflectRecord> &vBRDF, int times,
 		const ReflectRecord &startR)
@@ -195,11 +198,12 @@ Path Path::makeRandomPathInImage(RayTracing * r)
 
 std::tuple<Path, double> Path::mutate()
 {
-	Path p = makeRandomPathInImage(rt);
+	Path p = makeRandomPath(rt);
 	
 	double pro = queryLuminiance(p.luminiance) * randomProbability * diffuseAndLightProbability
 		/ queryLuminiance(luminiance) / p.randomProbability / p.diffuseAndLightProbability;
 	if (pro > 1) pro = 1;
+	if (p.randomProbability <= 0) pro = 0;
 	return std::make_tuple(std::move(p), pro);
 }
 
@@ -213,7 +217,7 @@ void Path::record(BitmapArray & barr, double w)
 	assert(x >= 0 && x < FinalWidth && y >= 0 && y < FinalHeight);
 	double lu = queryLuminiance(luminiance);
 
-	assert(lu > eps);
+	assert(lu > 0);
 
 	barr[x][y].r += w * luminiance.x / lu;
 	barr[x][y].g += w * luminiance.y / lu;
@@ -282,6 +286,16 @@ double Path::debugQueryLuminianceInImage(RayTracing *r, double x, double y)
 	path.calLuminianceAndRandomProbability();
 
 	return queryLuminiance(path.luminiance);
+}
+
+int Path::debugQueryDiffuseTimes()
+{
+	return eyeBRDF.size() + lightBRDF.size();
+}
+
+int Path::debugEyeDiffuseTimes()
+{
+	return eyeBRDF.size();
 }
 
 

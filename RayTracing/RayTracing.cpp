@@ -11,23 +11,41 @@
 BitmapArray RayTracing::MLT_process(Path & p)
 {
 	BitmapArray barr(FinalWidth, FinalHeight);
+	
 	for (int mt = 0;mt < MutateTimes; mt++) {
-		if(mt % 10000==0)
+		if (mt % 10000 == 0)
 			std::cerr << mt << " ";
 		auto tmp = p.mutate();
 		auto &p2 = std::get<0>(tmp);
 		double pro = std::get<1>(tmp);
 		p.record(barr, 1 - pro);
-		p2.record(barr, pro);
+		if (pro > eps)
+			p2.record(barr, pro);
 
-		//p2.record(barr, 1);
+
+		//if(p2.queryInitLuminianceDivProbability() > eps)
+		//	p2.record(barr, 1);
+
 
 		//std::cerr << pro << std::endl;
+
+		static int cnt1 = 0, cnt2 = 0, cnt3 = 0;
+		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 1)
+			cnt1++;
+		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 2)
+			cnt2++;
+		if (p.debugQueryDiffuseTimes() == 1)
+			cnt3++;
+
+		if (mt % 10000 == 0) {
+			std::cerr << "!" << cnt1 << " " << cnt2 << " " << cnt3 << std::endl;
+			cnt1 = cnt2 = cnt3 = 0;
+		}
 		if (rand() < pro * RAND_MAX) {
 			p = std::move(p2);
 		}
 	}
-
+	
 	/*for (int i = 0;i < FinalWidth; i++) {
 		for (int j = 0;j < FinalHeight; j++) {
 			for (int k = 0; k < 3;k++) {
@@ -48,16 +66,19 @@ Bitmap RayTracing::metropisLightTransport()
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
-
+	int startID = 400;
 #pragma omp parallel for
 	for (int i = 0;i < SampleTimes; i++) {
 		Path p = Path::makeRandomPathInImage(this);
 		w[i] = p.queryInitLuminianceDivProbability();
-		while (w[i] < eps) {
-			p = Path::makeRandomPathInImage(this);
-			w[i] = p.queryInitLuminianceDivProbability();
+		if (w[i] < eps) {
+			continue;
 		}
 		samples[i] = MLT_process(p);
+
+		std::stringstream filename;
+		filename << "data/finalResultWithoutBrightness" << i + startID << ".txt";
+		samples[i].save(filename.str().c_str());
 	}
 
 	for (int wi = 0;wi < FinalWidth; wi++) {
@@ -97,9 +118,12 @@ ReflectRecord RayTracing::queryLight()
 	ans.indir = Point(0, 0, 0);
 	ans.hitpoint = Point(5, 0, 0);
 
-	double theta = rand() * PI / RAND_MAX - PI / 2;
-	double phi = rand() * 2 * PI / RAND_MAX;
-	ans.outdir = Point(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
+	double u = (double)rand() / RAND_MAX * 2 -1; //按面积取样
+	double phi = rand() * PI * 2 / RAND_MAX;
+	double z = u, t = sqrt(1-u*u);
+	double x = t*cos(phi), y = t*sin(phi);
+
+	ans.outdir = Point(x, y, z);
 	ans.luminiance = Color(1, 1, 1);
 	ans.randomProbability = 1;
 	ans.face = nullptr;

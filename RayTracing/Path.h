@@ -52,7 +52,7 @@ private:
 	//º∆À„shadowDisatance
 	bool checkShadow();
 
-	std::tuple<int, int> queryImagePos();
+	
 	bool queryInImage();
 
 public:
@@ -64,4 +64,8 @@ public:
 	double queryInitLuminianceDivProbability();
 
 	static double debugQueryLuminianceInImage(RayTracing* r, double x, double y);
+	int debugQueryDiffuseTimes();
+	int debugEyeDiffuseTimes();
+
+	std::tuple<int, int> queryImagePos();
 };
