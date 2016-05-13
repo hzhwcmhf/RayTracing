@@ -27,6 +27,8 @@ BitmapArray::BitmapArray(const BitmapArray & b)
 BitmapArray::BitmapArray(BitmapArray && b)
 {
 	data = b.data;
+	width = b.width, height = b.height;
+	b.data = nullptr;
 }
 
 BitmapArray::~BitmapArray()
@@ -47,6 +49,7 @@ BitmapArray & BitmapArray::operator=(BitmapArray && b)
 {
 	if (data) delete[] data;
 	data = b.data;
+	width = b.width, height = b.height;
 	b.data = nullptr;
 	return *this;
 }
@@ -65,7 +68,8 @@ Bitmap BitmapArray::transformToBitmap(int brightness)
 	for (int i = 0;i < width;i++) {
 		for (int j = 0;j < height;j++) {
 			for (int k = 0;k < 3;k++) {
-				res[i][j].c[k] = (BYTE)((*this)[i][j].c[k] / vmax * brightness);
+				double tmp = (*this)[i][j].c[k] / vmax * brightness * 2;
+				res[j][i].c[k] = tmp>255?255:(BYTE)tmp;
 			}
 		}
 	}

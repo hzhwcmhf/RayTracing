@@ -19,7 +19,7 @@
 #include <array>
 #include <algorithm>
 #include <ctime>
-#include <cassert>
+//#include <cassert>
 #include <fstream>
 #include <cmath>
 
@@ -31,10 +31,15 @@
 const double eps = 1e-10;
 const double PI = acos(-1);
 
-const int SampleTimes = 100;
-const int FinalWidth = 480, FinalHeight = 360;
+const int SampleTimes = 1;
+const int FinalWidth = 200, FinalHeight = 150;
 const int FinalRGBMax = 255;
-const int MutateTimes = 10000;
+const int MutateTimes = 1000000;
 const int PathMaxDiffuseTimes = 2;
 const int SubpathMaxSpecularTimes = 30;
 const double PathDiffuseProbability = 0.5;
+
+inline void assert(bool x)
+{
+	if (!x) throw 1;
+}

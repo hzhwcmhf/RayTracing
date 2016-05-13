@@ -25,7 +25,7 @@ struct SubPath
 	
 
 	//emplictLight
-	bool checkShadow(const HalfReflectRecord &start, const Face* endFace);
+	bool checkShadow(const HalfReflectRecord &start, const HalfReflectRecord &end);
 
 
 	//·­×ªÂ·¾¶
@@ -51,10 +51,17 @@ private:
 	void calLuminianceAndRandomProbability();
 	//¼ÆËãshadowDisatance
 	bool checkShadow();
+
+	std::tuple<int, int> queryImagePos();
+	bool queryInImage();
+
 public:
 	Path(RayTracing* r);
 	static Path makeRandomPath(RayTracing* r);
-	std::tuple<Path, double> mutate();
+	static Path makeRandomPathInImage(RayTracing* r);
+	std::tuple<Path, double> mutate();	//tmp
 	void record(BitmapArray& barr, double w);
 	double queryInitLuminianceDivProbability();
+
+	static double debugQueryLuminianceInImage(RayTracing* r, double x, double y);
 };

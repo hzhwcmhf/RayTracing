@@ -4,60 +4,36 @@
 #include "BitmapArray.h"
 #include "Path.h"
 #include "KDtree.h"
+#include "Object.h"
+
 
 class RayTracing
 {
 private:
-	BitmapArray MLT_process(Path &p)
+	KDtree tree;
+	std::vector<Object> vecObjects;
+
+	BitmapArray MLT_process(Path &p);
+
+	struct Camera
 	{
-		BitmapArray barr(FinalWidth, FinalHeight);
-		for (int mt = 0;mt < MutateTimes; mt++) {
-			auto tmp = p.mutate();
-			auto &p2 = std::get<0>(tmp);
-			double pro = std::get<1>(tmp);
-			p.record(barr, 1 - pro);
-			p2.record(barr, pro);
-			if (rand() < pro * RAND_MAX) {
-				p = std::move(p2);
-			}
-		}
-		return barr;
-	}
+		double realWidth, realHeight;
+
+		Point generateDir() const;
+		Point generateDir(double x, double y) const;
+		std::tuple<int, int> queryPos(const Point &dir) const;
+		bool queryInImage(const Point &dir) const;
+	}camera;
 
 public:
 
-	Bitmap metropisLightTransport()
-	{
-		static BitmapArray samples[SampleTimes];
-		static double w[SampleTimes];
-		BitmapArray sampleSum;
+	Bitmap metropisLightTransport();
 
-#pragma omp parallel for
-		for (int i = 0;i < SampleTimes; i++) {
-			Path p = Path::makeRandomPath(this);
-			w[i] = p.queryInitLuminianceDivProbability();
-			while (w[i] < eps) {
-				p = Path::makeRandomPath(this);
-				w[i] = p.queryInitLuminianceDivProbability();
-			}
-			samples[i] = MLT_process(p);
-		}
-
-		for (int wi = 0;wi < FinalWidth; wi++) {
-			for (int he = 0; he < FinalHeight; he++) {
-				for (int i = 0;i < SampleTimes; i++) {
-					for (int j = 0;j < 3;j++) {
-						sampleSum[wi][he].c[j] += w[i] * samples[i][wi][he].c[j];
-					}
-				}
-			}
-		}
-		sampleSum.save("finalResultWithoutBrightness.txt");
-		return sampleSum.transformToBitmap(FinalRGBMax);
-	}
-
-	ReflectRecord queryEye();
-	ReflectRecord queryLight();
-	std::tuple<int, int> queryImagePos(const Point &dir);
+	ReflectRecord queryEye();//tmp
+	ReflectRecord queryLight();//tmp
 	const KDtree* queryKDtree();
+	const Camera* queryCamera();
+
+	void tmpInit();//tmp
+
 };

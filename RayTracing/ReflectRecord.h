@@ -17,7 +17,7 @@ class ReflectRecord
 public:
 	enum ReflectType
 	{
-		diffuse, specular, refractive
+		diffuse, specular, refractive, eyeOrLight
 	}type;
 	const Face* face;
 	Point indir, hitpoint, outdir;
@@ -27,6 +27,7 @@ public:
 private:
 	void generateDiffuse();
 	void makeDiffuse(const Point &_outdir);
+	void makeEyeOrLight(const Point &_outdir);
 	void generateSpecular();
 	void generateRefractive();
 
@@ -35,7 +36,7 @@ public:
 	static ReflectRecord randomReflect(const Face* _face, const Point &_indir, const Point &_hitPoint);
 	//可能失败 失败时randomProbability置为负数
 	static ReflectRecord adjustReflect(const Face* _face, const Point &_indir, const Point &_hitPoint, const ReflectRecord &tar);
-	static ReflectRecord makeDiffuse(const Face* _face, const Point &_indir, const Point &_hitPoint, const Point &_outdir);
+	static ReflectRecord adjustDiffuse(const Face* _face, const Point &_indir, const Point &_hitPoint, const Point &_outdir);
 
 	HalfReflectRecord makeHalfOut() const;
 

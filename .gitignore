@@ -244,3 +244,5 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 *.pdf
+*.bmp
+/RayTracing/finalResultWithoutBrightness.txt

@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "KDtree.h"
 
-
+#ifdef _DEBUG
 int G_cnt;
+#endif
 
 void KDtree::BorderBox::init(const Face & f)
 {
@@ -55,7 +56,9 @@ void KDtree::addObject(const Object & p)
 
 KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, const BorderBox &box)
 {
+#ifdef _DEBUG
 	G_cnt++;
+#endif
 
 	Node* res = new Node;
 	res->direction = Node::leaf;
@@ -224,7 +227,9 @@ void KDtree::buildTree()
 	std::vector<const Face*> orifp = std::move(fp);
 	fp.clear();
 
+#ifdef _DEBUG
 	G_cnt = 0;
+#endif
 
 	BorderBox box;
 	box.x1 = box.y1 = box.z1 = -INFINITY;
@@ -232,7 +237,9 @@ void KDtree::buildTree()
 
 	root = buildTree_subtree(orifp, box);
 
-	std::cerr << G_cnt << std::endl;
+#ifdef _DEBUG
+	std::cerr << "buildtree:" << G_cnt << std::endl;
+#endif
 }
 
 
@@ -243,12 +250,16 @@ std::tuple<const Face*, double> KDtree::queryNode(const Node* node, const Point 
 		const Face* res = nullptr;
 		for (int i = node->l; i < node->r; i++) {
 			if (fp[i] == ignore) continue;
+#ifdef _DEBUG
 			G_cnt++;
+#endif
 			double t = queryIntersectTime(*fp[i], s, dir);
 			assert(t >= 0);
+#ifdef _DEBUG
 			if (t < eps)
 				std::cerr << "warning: some faces is too close to startPos" << std::endl;
-			if (t < bestt) {
+#endif
+			if (t> eps && t < bestt) {
 				res = fp[i], bestt = t;
 			}
 		}
@@ -272,9 +283,13 @@ std::tuple<const Face*, double> KDtree::queryNode(const Node* node, const Point 
 
 std::tuple<const Face*, Point> KDtree::query(const Point & s, const Point & dir, const Face* ignore/* = nullptr*/) const
 {
+#ifdef _DEBUG
 	G_cnt = 0;
+#endif
 	auto res = queryNode(root, s, dir, ignore);
-	std::cerr << G_cnt << std::endl;
+#ifdef _DEBUG
+	//std::cerr << "query:" << G_cnt << std::endl;
+#endif
 	return std::make_tuple(std::get<0>(res), std::get<1>(res) * dir + s);
 }
 
@@ -288,7 +303,7 @@ std::tuple<const Face*, Point> KDtree::queryBF(const Point & s, const Point & di
 		assert(t >= 0);
 		if (t < eps)
 			std::cerr << "warning: some faces is too close to startPos" << std::endl;
-		if (t < bestt) {
+		else if (t < bestt) {
 			res = fp[i], bestt = t;
 		}
 	}

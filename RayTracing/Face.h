@@ -34,11 +34,12 @@ public:
 	inline Point getNormalVector(const Point &hitpoint) const;
 };
 
+
 inline double queryIntersectTime(const Face & f, const Point & s, const Point & dir)
 {
 	Point n = cross(*f.a, *f.b, *f.c);
 	double t = dot(((*f.a) - s), n) / dot(dir, n);
-	if (t < -eps) return INFINITY;
+	if (t < 0 || isnan(t)) return INFINITY;
 	if (checkPointInFace(f, s + t * dir)) return t;
 	return INFINITY;
 }
@@ -103,5 +104,6 @@ inline Point Face::getNormalVector(const Point &hitpoint) const
 	double ASB = norm(cross(*a, hitpoint, *b));
 	double BSC = norm(cross(*b, hitpoint, *c));
 	double CSA = norm(cross(*c, hitpoint, *a));
-	return ((*an) * BSC + (*bn) * CSA + (*cn) * ASB) / (ASB + BSC + CSA);
+	Point n = ((*an) * BSC + (*bn) * CSA + (*cn) * ASB);
+	return n / abs(n);
 }

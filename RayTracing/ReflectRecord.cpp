@@ -4,10 +4,10 @@
 
 void ReflectRecord::generateDiffuse()
 {
-	randomProbability *= face->objectp->kdL;
+	randomProbability = face->objectp->kdL;
 	type = diffuse;
 
-	double t = pow(rand(), 1. / 3); //sqrt(x2+y2) 随机取样 按cos(theta)的概率分布
+	double t = pow((double)rand() / RAND_MAX, 1. / 3); //sqrt(x2+y2) 随机取样 按cos(theta)的概率分布
 	double deg = rand() * PI * 2 / RAND_MAX;
 	double z = sqrt(1 - t * t);
 	double x = cos(deg) * t, y = sin(deg) * t;
@@ -17,33 +17,48 @@ void ReflectRecord::generateDiffuse()
 
 	//旋转到法向量方向
 	Point nv = face->getNormalVector(hitpoint);
-	double alpha = asin(-nv.y);
-	double beta = atan2(nv.x, nv.z);
+	//double alpha = asin(-nv.y);
+	//double beta = atan2(nv.x, nv.z);
 
-	double sina = sin(alpha), cosa = cos(alpha);
-	double sinb = sin(beta), cosb = cos(beta);
+	double sina = -nv.y, cosa = sqrt(1 - nv.y*nv.y);
+	double xz = sqrt(nv.x * nv.x + nv.z * nv.z);
+	double sinb = nv.x /xz , cosb = nv.z / xz;
+	if (xz < eps) sinb = 0, cosb = 1;
 	outdir.x = x * cosb + y * sina * sinb + z * cosa * sinb;
 	outdir.y = y * cosa - z * sina;
-	outdir.z = -x * sinb + y * sina * cosb + z * cosa * cosb;
+	outdir.z = -x * sinb + y * sina * cosb + z * cosa * cosb;;
 }
 
 void ReflectRecord::makeDiffuse(const Point & _outdir)
 {
-	randomProbability *= face->objectp->kdL;
+	outdir = _outdir;
+
+	randomProbability = face->objectp->kdL;
 	type = diffuse;
 
 	Point nv = face->getNormalVector(hitpoint);
-	outdir = _outdir;
 
 	double z = dot(nv, outdir);
+
+	if (z <= eps) {
+		randomProbability = -1;
+		return;
+	}
 
 	randomProbability *= z;
 	luminiance = z * face->objectp->kd;
 }
 
+void ReflectRecord::makeEyeOrLight(const Point & _outdir)
+{
+	randomProbability = 1;
+	luminiance = Color{ 1,1,1 };
+	outdir = _outdir;
+}
+
 void ReflectRecord::generateSpecular()
 {
-	randomProbability *= face->objectp->ksL;
+	randomProbability = face->objectp->ksL;
 	type = specular;
 
 	luminiance = face->objectp->ks;
@@ -55,7 +70,7 @@ void ReflectRecord::generateSpecular()
 
 void ReflectRecord::generateRefractive()
 {
-	randomProbability *= face->objectp->tfL;
+	randomProbability = face->objectp->tfL;
 	type = refractive;
 
 	luminiance = face->objectp->tf;
@@ -99,9 +114,9 @@ ReflectRecord ReflectRecord::randomReflect(const Face * _face, const Point & _in
 	double kdlimit = RAND_MAX * kdL;
 	double kslimit = kdlimit + RAND_MAX * ksL;
 
-	if (tmp < kdL) {
+	if (tmp <= kdlimit) {
 		now.generateDiffuse();
-	}else if(tmp < ksL){
+	}else if(tmp <= kslimit){
 		now.generateRefractive();
 	}else {
 		now.generateRefractive();
@@ -120,15 +135,21 @@ ReflectRecord ReflectRecord::adjustReflect(const Face * _face, const Point & _in
 		now.generateRefractive();
 	}else if(tar.type == refractive){
 		now.generateRefractive();
+	}else if (tar.type == eyeOrLight) {
+		now.makeEyeOrLight(tar.outdir);
 	}
 	return now;
 }
 
-ReflectRecord ReflectRecord::makeDiffuse(const Face * _face, const Point & _indir, const Point & _hitPoint, const Point & _outdir)
+ReflectRecord ReflectRecord::adjustDiffuse(const Face * _face, const Point & _indir, const Point & _hitPoint, const Point & _outdir)
 {
 	ReflectRecord now;
 	now.face = _face, now.indir = _indir, now.hitpoint = _hitPoint;
-	now.makeDiffuse(_outdir);
+	if (_face) {
+		now.makeDiffuse(_outdir);
+	} else {
+		now.makeEyeOrLight(_outdir);
+	}
 	return now;
 }
 
