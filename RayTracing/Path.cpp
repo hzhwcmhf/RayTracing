@@ -97,8 +97,8 @@ bool Path::checkShadow()
 	eyeBRDF.pop_back();
 	lightBRDF.pop_back();
 
-	shadowDistance = norm(r2.hitpoint - r1.hitpoint);
-	if (shadowDistance < MinShadowDistance) shadowDistance = MinShadowDistance;	//控制距离，太近的话微元取得太大导致奇异
+	shadowDistance = norm(r2.hitpoint - r1.hitpoint) + MinShadowDistance;//控制距离，太近的话微元取得太大导致奇异
+	//if (shadowDistance < MinShadowDistance) shadowDistance = MinShadowDistance;	
 	Point dir = (r2.hitpoint - r1.hitpoint) / sqrt(shadowDistance);
 	shadowEyeBRDF = ReflectRecord::adjustDiffuse(r1.face, r1.indir, r1.hitpoint, dir);
 	shadowLightBRDF = ReflectRecord::adjustDiffuse(r2.face, r2.indir, r2.hitpoint, -dir);

@@ -317,7 +317,7 @@ double queryIntersectTime(const KDtree::BorderBox & box, const Point & s, const 
 	double ty1 = (box.y1 - s.y) / dir.y;
 	double ty2 = (box.y2 - s.y) / dir.y;
 	double tz1 = (box.z1 - s.z) / dir.z;
-	double tz2 = (box.z1 - s.z) / dir.z;
+	double tz2 = (box.z2 - s.z) / dir.z;
 	if (tx1 > tx2) std::swap(tx1, tx2);
 	if (ty1 > ty2) std::swap(ty1, ty2);
 	if (tz1 > tz2) std::swap(tz1, tz2);
