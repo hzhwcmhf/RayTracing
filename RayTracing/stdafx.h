@@ -32,7 +32,7 @@
 const double eps = 1e-10;
 const double PI = acos(-1);
 
-const int SampleTimes = 40;
+const int SampleTimes = 8;
 const int FinalWidth = 200, FinalHeight = 150;
 const int FinalRGBMax = 255;
 const int MutateTimes = 10000000;

@@ -13,7 +13,7 @@ BitmapArray RayTracing::MLT_process(Path & p)
 	BitmapArray barr(FinalWidth, FinalHeight);
 	
 	for (int mt = 0;mt < MutateTimes; mt++) {
-		if (mt % 10000 == 0)
+		if (mt % 20000 == 0)
 			std::cerr << mt << " ";
 		auto tmp = p.mutate();
 		auto &p2 = std::get<0>(tmp);
@@ -29,17 +29,19 @@ BitmapArray RayTracing::MLT_process(Path & p)
 
 		//std::cerr << pro << std::endl;
 
-		static int cnt1 = 0, cnt2 = 0, cnt3 = 0;
-		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 1)
-			cnt1++;
-		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 2)
+		static int cnt1 = 0, cnt2 = 0, cnt3 = 0, cnt4 = 0;
+		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 0)
 			cnt2++;
-		if (p.debugQueryDiffuseTimes() == 1)
+		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 1)
 			cnt3++;
+		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 2)
+			cnt4++;
+		if (p.debugQueryDiffuseTimes() == 1)
+			cnt1++;
 
-		if (mt % 10000 == 0) {
-			std::cerr << "!" << cnt1 << " " << cnt2 << " " << cnt3 << std::endl;
-			cnt1 = cnt2 = cnt3 = 0;
+		if (mt % 20000 == 0) {
+			std::cerr << "!" << cnt1 << " " << cnt2 << " " << cnt3 << " " << cnt4 << std::endl;
+			cnt1 = cnt2 = cnt3 = cnt4 = 0;
 		}
 		if (rand() < pro * RAND_MAX) {
 			p = std::move(p2);
@@ -64,8 +66,8 @@ Bitmap RayTracing::metropisLightTransport()
 	static double w[SampleTimes];
 	BitmapArray sampleSum(FinalWidth, FinalHeight);
 
-	//sampleSum.load("finalResultWithoutBrightness.txt");
-	//return sampleSum.transformToBitmap(FinalRGBMax);
+	sampleSum.load("finalResultWithoutBrightness.txt");
+	return sampleSum.transformToBitmap(FinalRGBMax);
 	int startID = 400;
 #pragma omp parallel for
 	for (int i = 0;i < SampleTimes; i++) {
@@ -100,7 +102,7 @@ ReflectRecord RayTracing::queryEye()
 {
 	ReflectRecord ans;
 	ans.type = ReflectRecord::eyeOrLight;
-	ans.indir = Point(0,0,0);
+	ans.indir = Point(0,0,1); //法向量方向
 	ans.hitpoint = Point(0, 0, 0);
 
 	ans.outdir = camera.generateDir();
@@ -125,7 +127,7 @@ ReflectRecord RayTracing::queryLight()
 
 	ans.outdir = Point(x, y, z);
 	ans.luminiance = Color(1, 1, 1);
-	ans.randomProbability = 1;
+	ans.randomProbability = 0.25 / PI;
 	ans.face = nullptr;
 	return ans;
 }
@@ -245,7 +247,7 @@ Point RayTracing::Camera::generateDir() const
 	//Point dir = randomGenerate();
 	//while (!queryInImage(dir)) dir = randomGenerate
 
-	Point dir = generateDir((double)rand() * FinalWidth / (RAND_MAX - 1), (double)rand() * FinalHeight / (RAND_MAX + 1));
+	Point dir = generateDir((double)rand() * FinalWidth / (RAND_MAX - 1), (double)rand() * FinalHeight / (RAND_MAX - 1));
 	return dir;
 }
 
@@ -260,8 +262,8 @@ std::tuple<int, int> RayTracing::Camera::queryPos(const Point &dir) const
 	if (dir.z < 0) return std::make_tuple(FinalWidth, FinalHeight);
 	double x = dir.x / dir.z;
 	double y = dir.y / dir.z;
-	return std::make_tuple((int)(x / realWidth * FinalWidth + FinalWidth / 2),
-		(int)(y / realHeight * FinalHeight + FinalHeight / 2));
+	return std::make_tuple((int)floor(x / realWidth * FinalWidth + FinalWidth / 2),
+		(int)floor(y / realHeight * FinalHeight + FinalHeight / 2));
 }
 
 bool RayTracing::Camera::queryInImage(const Point &dir) const

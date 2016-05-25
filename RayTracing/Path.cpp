@@ -53,9 +53,15 @@ ReflectRecord SubPath::extend()
 bool SubPath::checkShadow(const HalfReflectRecord & start, const HalfReflectRecord &end)
 {
 	const KDtree* tree = rt->queryKDtree();
-	auto nextpos = tree->query(start.hitpoint, start.dir, start.face);
-	//TODO tmp
-	if (end.face && std::get<0>(nextpos) != end.face) return false; //注意直接连到光源的情况
+	
+	//注意直接连到光源的情况
+	if (!end.face) {
+		auto nextpos = tree->query(end.hitpoint, -start.dir, end.face);
+		if (std::get<0>(nextpos) != start.face) return false;
+	} else {
+		auto nextpos = tree->query(start.hitpoint, start.dir, start.face);
+		if (std::get<0>(nextpos) != end.face) return false;
+	}
 	startR = start;
 	endR.face = end.face;
 	endR.hitpoint = end.hitpoint;
@@ -88,6 +94,7 @@ void Path::calLuminianceAndRandomProbability()
 	luminiance *= shadowEyeBRDF.luminiance;
 	luminiance *= shadowLightBRDF.luminiance;
 	luminiance *= 1 / shadowDistance;
+	//luminiance *= 1 / (shadowDistance + shadowDistance);//控制距离，太近的话微元取得太大导致奇异
 	//randomProbability *= shadowDistance;
 }
 
@@ -97,14 +104,17 @@ bool Path::checkShadow()
 	eyeBRDF.pop_back();
 	lightBRDF.pop_back();
 
-	shadowDistance = norm(r2.hitpoint - r1.hitpoint) + MinShadowDistance;//控制距离，太近的话微元取得太大导致奇异
-	//if (shadowDistance < MinShadowDistance) shadowDistance = MinShadowDistance;	
+	shadowDistance = norm(r2.hitpoint - r1.hitpoint);
 	Point dir = (r2.hitpoint - r1.hitpoint) / sqrt(shadowDistance);
 	shadowEyeBRDF = ReflectRecord::adjustDiffuse(r1.face, r1.indir, r1.hitpoint, dir);
 	shadowLightBRDF = ReflectRecord::adjustDiffuse(r2.face, r2.indir, r2.hitpoint, -dir);
 	if (shadowEyeBRDF.randomProbability <= 0 || shadowLightBRDF.randomProbability <= 0) return false;
 	if(!shadowPath.checkShadow(shadowEyeBRDF.makeHalfOut(), shadowLightBRDF.makeHalfOut())) return false;
-	
+
+	if (!shadowEyeBRDF.face) {
+		shadowEyeBRDF.luminiance *= 1 / pow(dot(shadowEyeBRDF.outdir, shadowEyeBRDF.indir), 3);
+	}
+
 	return true;
 }
 
@@ -137,21 +147,21 @@ Path Path::makeRandomPath(RayTracing * r)
 	ReflectRecord light = r->queryLight();
 
 	//漫反射次数采样
-	int diffuseTimes = 1;
-	while (diffuseTimes < PathMaxDiffuseTimes) {
-		if (rand() > PathDiffuseProbability * RAND_MAX) break;
-		diffuseTimes++;
-		path.diffuseAndLightProbability *= PathDiffuseProbability;
-	}
-	if (diffuseTimes != PathMaxDiffuseTimes)
-		path.diffuseAndLightProbability *= 1 - PathDiffuseProbability;;
-	//双向路径分裂位置采样
-	path.diffuseAndLightProbability /= diffuseTimes;
+	//int diffuseTimes = 1;
+	//while (diffuseTimes < PathMaxDiffuseTimes) {
+	//	if (rand() > PathDiffuseProbability * RAND_MAX) break;
+	//	diffuseTimes++;
+	//	path.diffuseAndLightProbability *= PathDiffuseProbability;
+	//}
+	//if (diffuseTimes != PathMaxDiffuseTimes)
+	//	path.diffuseAndLightProbability *= 1 - PathDiffuseProbability;;
+	////双向路径分裂位置采样
+	//path.diffuseAndLightProbability /= diffuseTimes;
 
-	int eyeDiffuseTimes = rand() % diffuseTimes + 1;
+	//int eyeDiffuseTimes = rand() % diffuseTimes + 1;
 
-	//int diffuseTimes = 2;
-	//int eyeDiffuseTimes = 2;
+	int diffuseTimes = 2;
+	int eyeDiffuseTimes = 0;
 
 	auto extendPath = [&r](std::vector<SubPath> &vPath, std::vector<ReflectRecord> &vBRDF, int times,
 		const ReflectRecord &startR)
