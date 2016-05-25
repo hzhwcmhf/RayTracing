@@ -66,9 +66,9 @@ Bitmap RayTracing::metropisLightTransport()
 	static double w[SampleTimes];
 	BitmapArray sampleSum(FinalWidth, FinalHeight);
 
-	sampleSum.load("finalResultWithoutBrightness.txt");
-	return sampleSum.transformToBitmap(FinalRGBMax);
-	int startID = 400;
+	//sampleSum.load("finalResultWithoutBrightness.txt");
+	//return sampleSum.transformToBitmap(FinalRGBMax);
+	int startID = 500;
 #pragma omp parallel for
 	for (int i = 0;i < SampleTimes; i++) {
 		Path p = Path::makeRandomPathInImage(this);
@@ -101,14 +101,14 @@ Bitmap RayTracing::metropisLightTransport()
 ReflectRecord RayTracing::queryEye()
 {
 	ReflectRecord ans;
-	ans.type = ReflectRecord::eyeOrLight;
+	ans.type = ReflectRecord::eye;
 	ans.indir = Point(0,0,1); //法向量方向
 	ans.hitpoint = Point(0, 0, 0);
 
 	ans.outdir = camera.generateDir();
 
-	ans.luminiance = Color(1, 1, 1);
-	ans.randomProbability = 1;
+	ans.luminiance = Color(1, 1, 1) / pow(ans.outdir.z, 3);
+	ans.randomProbability = 1 / pow(ans.outdir.z, 3);
 	ans.face = nullptr;
 	return ans;
 }
@@ -116,7 +116,7 @@ ReflectRecord RayTracing::queryEye()
 ReflectRecord RayTracing::queryLight()
 {
 	ReflectRecord ans;
-	ans.type = ReflectRecord::eyeOrLight;
+	ans.type = ReflectRecord::light;
 	ans.indir = Point(0, 0, 0);
 	ans.hitpoint = Point(5, 0, 0);
 
@@ -187,8 +187,8 @@ void RayTracing::tmpInit()
 	tree.buildTree();
 
 
-	camera.realWidth = 4;
-	camera.realHeight = 3;
+	camera.realWidth = RealWidth;
+	camera.realHeight = RealHeight;
 }
 
 

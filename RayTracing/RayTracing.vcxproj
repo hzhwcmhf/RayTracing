@@ -221,6 +221,7 @@
     <ClInclude Include="BRDF.h" />
     <ClInclude Include="Face.h" />
     <ClInclude Include="KDtree.h" />
+    <ClInclude Include="MUtility.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Path.h" />
     <ClInclude Include="Point.h" />
@@ -234,6 +235,7 @@
     <ClCompile Include="BitmapArray.cpp" />
     <ClCompile Include="Face.cpp" />
     <ClCompile Include="KDtree.cpp" />
+    <ClCompile Include="MUtility.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Path.cpp" />
     <ClCompile Include="RayTracing.cpp" />

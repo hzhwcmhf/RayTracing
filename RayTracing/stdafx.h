@@ -32,7 +32,7 @@
 const double eps = 1e-10;
 const double PI = acos(-1);
 
-const int SampleTimes = 8;
+const int SampleTimes = 4;
 const int FinalWidth = 200, FinalHeight = 150;
 const int FinalRGBMax = 255;
 const int MutateTimes = 10000000;
@@ -40,6 +40,13 @@ const int PathMaxDiffuseTimes = 2;
 const int SubpathMaxSpecularTimes = 30;
 const int MinShadowDistance = 1;
 const double PathDiffuseProbability = 0.5;
+
+const double PathMutateRotateStrategyProbability = 0.9;
+const double PathMutateRandomStrategyProbability = 0.1;
+
+const double PathMutateRotateThisPointProbability = 0.7;
+const double RealWidth = 4;
+const double RealHeight = 3;
 
 inline void assert(bool x)
 {

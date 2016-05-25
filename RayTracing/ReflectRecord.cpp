@@ -20,13 +20,7 @@ void ReflectRecord::generateDiffuse()
 	//double alpha = asin(-nv.y);
 	//double beta = atan2(nv.x, nv.z);
 
-	double sina = -nv.y, cosa = sqrt(1 - nv.y*nv.y);
-	double xz = sqrt(nv.x * nv.x + nv.z * nv.z);
-	double sinb = nv.x /xz , cosb = nv.z / xz;
-	if (xz < eps) sinb = 0, cosb = 1;
-	outdir.x = x * cosb + y * sina * sinb + z * cosa * sinb;
-	outdir.y = y * cosa - z * sina;
-	outdir.z = -x * sinb + y * sina * cosb + z * cosa * cosb;
+	outdir = Point(x, y, z).rotate(nv);
 }
 
 void ReflectRecord::makeDiffuse(const Point & _outdir)
@@ -49,9 +43,16 @@ void ReflectRecord::makeDiffuse(const Point & _outdir)
 	luminiance = z * face->objectp->kd;
 }
 
-void ReflectRecord::makeEyeOrLight(const Point & _outdir)
+void ReflectRecord::makeEye(const Point &_outdir)
 {
-	randomProbability = 1;
+	randomProbability = 1 / pow(_outdir.z, 3);
+	luminiance = Color{ 1, 1, 1 } * randomProbability;
+	outdir = _outdir;
+}
+
+void ReflectRecord::makeLight(const Point & _outdir)
+{
+	randomProbability = 0.25 / PI;
 	luminiance = Color{ 1,1,1 };
 	outdir = _outdir;
 }
@@ -124,33 +125,49 @@ ReflectRecord ReflectRecord::randomReflect(const Face * _face, const Point & _in
 	return now;
 }
 
-ReflectRecord ReflectRecord::adjustReflect(const Face * _face, const Point & _indir, const Point & _hitPoint, const ReflectRecord & tar)
-{
-	ReflectRecord now;
-	now.face = _face, now.indir = _indir, now.hitpoint = _hitPoint;
+//ReflectRecord ReflectRecord::adjustReflect(const Face * _face, const Point & _indir, const Point & _hitPoint, const ReflectRecord & tar)
+//{
+//	ReflectRecord now;
+//	now.face = _face, now.indir = _indir, now.hitpoint = _hitPoint;
+//
+//	if (tar.type == diffuse) {
+//		now.makeDiffuse(tar.outdir);
+//	} else if (tar.type == specular) {
+//		now.generateRefractive();
+//	}else if(tar.type == refractive){
+//		now.generateRefractive();
+//	}else if (tar.type == eye) {
+//		now.makeEye(tar.outdir);
+//	}else if (tar.type == light) {
+//		now.makeLight(tar.outdir);
+//	}
+//	return now;
+//}
+//
+//ReflectRecord ReflectRecord::adjustDiffuse(const Face * _face, const Point & _indir, const Point & _hitPoint, const Point & _outdir)
+//{
+//	ReflectRecord now;
+//	now.face = _face, now.indir = _indir, now.hitpoint = _hitPoint;
+//	
+//	if (tar.type == diffuse) {
+//		now.makeDiffuse(tar.outdir);
+//	}else if (tar.type == eye) {
+//		now.makeEye(tar.outdir);
+//	}else if (tar.type == light) {
+//		now.makeLight(tar.outdir);
+//	}
+//	return now;
+//}
 
-	if (tar.type == diffuse) {
-		now.makeDiffuse(tar.outdir);
-	} else if (tar.type == specular) {
-		now.generateRefractive();
-	}else if(tar.type == refractive){
-		now.generateRefractive();
-	}else if (tar.type == eyeOrLight) {
-		now.makeEyeOrLight(tar.outdir);
-	}
-	return now;
-}
-
-ReflectRecord ReflectRecord::adjustDiffuse(const Face * _face, const Point & _indir, const Point & _hitPoint, const Point & _outdir)
+void ReflectRecord::adjustDiffuse(const Point & _outdir)
 {
-	ReflectRecord now;
-	now.face = _face, now.indir = _indir, now.hitpoint = _hitPoint;
-	if (_face) {
-		now.makeDiffuse(_outdir);
-	} else {
-		now.makeEyeOrLight(_outdir);
+	if (type == diffuse) {
+		makeDiffuse(_outdir);
+	}else if (type == eye) {
+		makeEye(_outdir);
+	}else if (type == light) {
+		makeLight(_outdir);
 	}
-	return now;
 }
 
 HalfReflectRecord ReflectRecord::makeHalfOut() const

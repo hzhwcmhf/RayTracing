@@ -79,6 +79,19 @@ public:
 	{
 		return sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
 	}
+
+	Point rotate(const Point &dir) const//将(0,0,1)转到dir方向
+	{
+		double sina = -dir.y, cosa = sqrt(1 - dir.y*dir.y);
+		double xz = sqrt(dir.x * dir.x + dir.z * dir.z);
+		double sinb = dir.x / xz, cosb = dir.z / xz;
+		if (xz < eps) sinb = 0, cosb = 1;
+		Point ans;
+		ans.x = x * cosb + y * sina * sinb + z * cosa * sinb;
+		ans.y = y * cosa - z * sina;
+		ans.z = -x * sinb + y * sina * cosb + z * cosa * cosb;
+		return ans;
+	}
 };
 
 typedef Point* Vertex;
