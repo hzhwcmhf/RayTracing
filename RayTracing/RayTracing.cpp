@@ -29,19 +29,21 @@ BitmapArray RayTracing::MLT_process(Path & p)
 
 		//std::cerr << pro << std::endl;
 
-		static int cnt1 = 0, cnt2 = 0, cnt3 = 0, cnt4 = 0;
+		static int cnt10 = 0,cnt11 = 0, cnt2 = 0, cnt3 = 0, cnt4 = 0;
 		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 0)
 			cnt2++;
 		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 1)
 			cnt3++;
 		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 2)
 			cnt4++;
-		if (p.debugQueryDiffuseTimes() == 1)
-			cnt1++;
+		if (p.debugQueryDiffuseTimes() == 1 && p.debugEyeDiffuseTimes() == 0)
+			cnt10++;
+		if (p.debugQueryDiffuseTimes() == 1 && p.debugEyeDiffuseTimes() == 1)
+			cnt11++;
 
 		if (mt % 20000 == 0) {
-			std::cerr << "!" << cnt1 << " " << cnt2 << " " << cnt3 << " " << cnt4 << std::endl;
-			cnt1 = cnt2 = cnt3 = cnt4 = 0;
+			std::cerr << "!" << cnt10 << " " << cnt11 << " " << cnt2 << " " << cnt3 << " " << cnt4 << std::endl;
+			cnt10 = cnt11 = cnt2 = cnt3 = cnt4 = 0;
 		}
 		if (rand() < pro * RAND_MAX) {
 			p = std::move(p2);
@@ -108,7 +110,7 @@ ReflectRecord RayTracing::queryEye()
 	ans.outdir = camera.generateDir();
 
 	ans.luminiance = Color(1, 1, 1) / pow(ans.outdir.z, 3);
-	ans.randomProbability = 1 / pow(ans.outdir.z, 3);
+	ans.randomProbability = 3.8421 / pow(ans.outdir.z, 3);
 	ans.face = nullptr;
 	return ans;
 }

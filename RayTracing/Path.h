@@ -61,6 +61,8 @@ public:
 	static Path makeRandomPathInImage(RayTracing* r);
 
 	std::tuple<Path, double> mutateRotate() const;
+	std::tuple<Path, double> mutateSplit() const;
+	bool canMutateSplit() const;
 	std::tuple<Path, double> mutate() const;	//tmp
 	void record(BitmapArray& barr, double w);
 	double queryInitLuminianceDivProbability();

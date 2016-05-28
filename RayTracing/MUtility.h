@@ -16,8 +16,7 @@ inline int random_pro(double p)
 
 inline double normal_distribution(double u, double stdv, double &pro)
 {
-	double ans = std::normal_distribution<double>(u, stdv)(random_engine);
-	double x = (ans - u) / stdv;
-	pro *= 1 / sqrt(2 * PI) * exp(-x * x / 2);
-	return ans;
+	double x = std::normal_distribution<double>(u, stdv)(random_engine);
+	pro *= 1 / sqrt(2 * PI) / stdv * exp(-(x - u) * (x - u) / 2 / stdv / stdv);
+	return x;
 }

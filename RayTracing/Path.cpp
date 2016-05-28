@@ -67,7 +67,26 @@ bool SubPath::checkShadow(const HalfReflectRecord & start, const HalfReflectReco
 	endR.face = end.face;
 	endR.hitpoint = end.hitpoint;
 	endR.dir = start.dir;
+	luminiance = Color{ 1,1,1 };
+	randomProbability = 1;
 	return true;
+}
+
+void SubPath::reverse()
+{
+	std::swap(startR, endR);
+	startR.dir = -startR.dir;
+	endR.dir = -endR.dir;
+
+	luminiance = Color{ 1,1,1 };
+	randomProbability = 1;
+
+	std::reverse(inner.begin(), inner.end());
+	for (auto &x : inner) {
+		x.reverse();
+		luminiance *= x.luminiance;
+		randomProbability *= x.randomProbability;
+	}
 }
 
 
@@ -94,9 +113,12 @@ void Path::calLuminianceAndRandomProbability()
 	}
 	luminiance *= shadowEyeBRDF.luminiance;
 	luminiance *= shadowLightBRDF.luminiance;
-	luminiance *= 1 / shadowDistance;
-	//luminiance *= 1 / (shadowDistance + shadowDistance);//控制距离，太近的话微元取得太大导致奇异
+	//luminiance *= 1 / shadowDistance;
+	luminiance *= 1 / (shadowDistance + MinShadowDistance);//控制距离，太近的话微元取得太大导致奇异
+	//luminiance *= shadowEyeBRDF.queryOutCos() * shadowLightBRDF.queryOutCos();
+
 	//randomProbability *= shadowDistance;
+
 }
 
 bool Path::checkShadow()
@@ -146,21 +168,23 @@ Path Path::makeRandomPath(RayTracing * r)
 	ReflectRecord light = r->queryLight();
 
 	//漫反射次数采样
-	int diffuseTimes = 1;
-	while (diffuseTimes < PathMaxDiffuseTimes) {
-		if (rand() > PathDiffuseProbability * RAND_MAX) break;
-		diffuseTimes++;
-		path.diffuseAndLightProbability *= PathDiffuseProbability;
-	}
-	if (diffuseTimes != PathMaxDiffuseTimes)
-		path.diffuseAndLightProbability *= 1 - PathDiffuseProbability;;
+	//int diffuseTimes = 1;
+	//while (diffuseTimes < PathMaxDiffuseTimes) {
+	//	if (rand() > PathDiffuseProbability * RAND_MAX) break;
+	//	diffuseTimes++;
+	//	path.diffuseAndLightProbability *= PathDiffuseProbability;
+	//}
+	//if (diffuseTimes != PathMaxDiffuseTimes)
+	//	path.diffuseAndLightProbability *= 1 - PathDiffuseProbability;;
+
+	int diffuseTimes = 2;
 	//双向路径分裂位置采样
-	path.diffuseAndLightProbability /= (diffuseTimes + 1);
+	//path.diffuseAndLightProbability /= (diffuseTimes + 1);
 
 	int eyeDiffuseTimes = rand() % (diffuseTimes + 1);
 
 	//int diffuseTimes = 2;
-	//int eyeDiffuseTimes = 0;
+	//int eyeDiffuseTimes = 1;
 
 	auto extendPath = [&r](std::vector<SubPath> &vPath, std::vector<ReflectRecord> &vBRDF, int times,
 		const ReflectRecord &startR)
@@ -218,7 +242,7 @@ std::tuple<Path, double> Path::mutateRotate() const
 		}
 		if (n > 0) pro *= PathMutateRotateThisPointProbability;
 
-		double phi = normal_distribution(0, 2. / FinalWidth , pro);
+		double phi = normal_distribution(0, 4. / FinalWidth , pro);
 		double theta = std::uniform_real_distribution<double>(0, 2 * PI)(random_engine);
 		pro /= 2 * PI;
 		double z = cos(phi), y = sin(phi) * sin(theta), x = sin(phi) * cos(theta);
@@ -250,13 +274,13 @@ std::tuple<Path, double> Path::mutateRotate() const
 			p.randomProbability = -1;
 			return std::make_tuple(p, 0);
 		}
-		p.lightBRDF.push_back(shadowLightBRDF);
+		p.lightBRDF.push_back(p.shadowLightBRDF);
 	}else{
 		if (!rotateAndAdjust(p.lightPath, p.lightBRDF)) {
 			p.randomProbability = -1;
 			return std::make_tuple(p, 0);
 		}
-		p.eyeBRDF.push_back(shadowEyeBRDF);
+		p.eyeBRDF.push_back(p.shadowEyeBRDF);
 	}
 
 	if (!p.checkShadow() || !p.queryInImage()) {
@@ -269,23 +293,116 @@ std::tuple<Path, double> Path::mutateRotate() const
 	return std::make_tuple(p, pro);
 }
 
+std::tuple<Path, double> Path::mutateSplit() const
+{
+	Path p(*this);
+
+	int n = 0,m = 0;
+	for (auto &x : eyePath) {
+		if (x.inner.size() == 0) n++;
+	}
+	for(auto &x: lightPath){
+		if (x.inner.size() == 0) m++;
+	}
+	int pos = random_range(0, n + m - 1);
+	double pro = 1. / (n + m);
+
+	if (pos < n) {
+		p.lightBRDF.push_back(std::move(p.shadowLightBRDF));
+		p.shadowPath.reverse();
+		p.lightPath.push_back(std::move(p.shadowPath));
+
+		p.eyeBRDF.push_back(std::move(p.shadowEyeBRDF));
+		while (n > pos) {
+			if (p.lightPath.back().inner.size() == 0) n--;
+			if (n == pos) break;
+			p.lightBRDF.push_back(std::move(p.eyeBRDF.back()));
+			p.lightBRDF.back().reverse();
+			p.eyeBRDF.pop_back();
+			p.lightPath.push_back(std::move(p.eyePath.back()));
+			p.lightPath.back().reverse();
+			p.eyePath.pop_back();
+		}
+		
+		p.shadowLightBRDF = std::move(p.eyeBRDF.back());
+		p.eyeBRDF.pop_back();
+		p.shadowLightBRDF.reverse();
+		p.shadowPath = std::move(p.eyePath.back());
+		p.eyePath.pop_back();
+		p.shadowEyeBRDF = std::move(p.eyeBRDF.back());
+		p.eyeBRDF.pop_back();
+
+		assert(p.shadowPath.inner.size() == 0);
+		p.shadowDistance = norm(p.shadowEyeBRDF.hitpoint - p.shadowLightBRDF.hitpoint);
+	} else {
+		p.eyeBRDF.push_back(std::move(p.shadowEyeBRDF));
+		p.eyePath.push_back(std::move(p.shadowPath));
+
+		p.lightBRDF.push_back(std::move(p.shadowLightBRDF));
+		while (n <= pos) {
+			if (p.lightPath.back().inner.size() == 0) n++;
+			if (n == pos+1) break;
+			p.eyeBRDF.push_back(std::move(p.lightBRDF.back()));
+			p.eyeBRDF.back().reverse();
+			p.lightBRDF.pop_back();
+			p.eyePath.push_back(std::move(p.lightPath.back()));
+			p.eyePath.back().reverse();
+			p.lightPath.pop_back();
+		}
+		p.shadowEyeBRDF = std::move(p.lightBRDF.back());
+		p.lightBRDF.pop_back();
+		p.shadowEyeBRDF.reverse();
+
+		p.shadowPath = std::move(p.lightPath.back());
+		p.lightPath.pop_back();
+		p.shadowPath.reverse();
+		p.shadowLightBRDF = std::move(p.lightBRDF.back());
+		p.lightBRDF.pop_back();
+
+		assert(p.shadowPath.inner.size() == 0);
+		p.shadowDistance = norm(p.shadowEyeBRDF.hitpoint - p.shadowLightBRDF.hitpoint);
+	}
+
+	p.calLuminianceAndRandomProbability();
+	return std::make_tuple(p, pro);
+}
+
+bool Path::canMutateSplit() const
+{
+	for (auto &x : eyePath) {
+		if (x.inner.size() == 0) return true;
+	}
+	for (auto &x : lightPath) {
+		if (x.inner.size() == 0) return true;
+	}
+	return false;
+}
+
 std::tuple<Path, double> Path::mutate() const
 {
-	if (random_pro(PathMutateRotateStrategyProbability)) {
-		auto tmp = mutateRotate();
-		Path &p = std::get<0>(tmp);
-		double mpro = std::get<1>(tmp);
-		double pro = queryLuminiance(p.luminiance) *
-			(randomProbability * diffuseAndLightProbability * PathMutateRandomStrategyProbability + mpro * PathMutateRotateStrategyProbability)
-			/ queryLuminiance(luminiance) /
-			(p.randomProbability * p.diffuseAndLightProbability * PathMutateRandomStrategyProbability + mpro * PathMutateRotateStrategyProbability);
-		if (pro > 1) pro = 1;
-		if (p.randomProbability <= 0) pro = 0;
-		return std::make_tuple(std::move(p), pro);
-	} else {
+	double proRotate = PathMutateRotateStrategyProbability;
+	double proSplit = canMutateSplit() ? PathMutateSplitStrategyProbability : 0;
+	double proRandom = PathMutateRandomStrategyProbability;
+	double sum = proRotate + proSplit + proRandom;
+
+	if (random_pro(proRandom / sum)) {
 		Path p = makeRandomPath(rt);
 		double pro = queryLuminiance(p.luminiance) * randomProbability * diffuseAndLightProbability
 			/ queryLuminiance(luminiance) / p.randomProbability / p.diffuseAndLightProbability;
+		if (pro > 1) pro = 1;
+		if (p.randomProbability <= 0) pro = 0;
+		return std::make_tuple(std::move(p), pro);
+	}else{
+		int roll = random_pro(proRotate / (proRotate + proSplit));
+		auto tmp = roll ? mutateRotate() : mutateSplit();
+		double selectPro = roll ? proRotate / sum : proSplit / sum;
+		Path &p = std::get<0>(tmp);
+		double mpro = std::get<1>(tmp);
+		/*double pro = queryLuminiance(p.luminiance) *
+			(randomProbability * diffuseAndLightProbability * proRandom / sum + mpro * selectPro)
+			/ queryLuminiance(luminiance) /
+			(p.randomProbability * p.diffuseAndLightProbability * proRandom / sum + mpro * selectPro);*/
+		double pro = queryLuminiance(p.luminiance) / queryLuminiance(luminiance);
 		if (pro > 1) pro = 1;
 		if (p.randomProbability <= 0) pro = 0;
 		return std::make_tuple(std::move(p), pro);
@@ -303,6 +420,12 @@ void Path::record(BitmapArray & barr, double w)
 	double lu = queryLuminiance(luminiance);
 
 	assert(lu > 0);
+
+	//if (abs(x - 185) <= 10 && abs(y - 77) <= 10)
+	//if (abs(x - 125)<=10 && abs(y- 74)<=10)
+	//	std::cerr << "!";
+	//else
+	//	std::cerr << "#";
 
 	barr[x][y].r += w * luminiance.x / lu;
 	barr[x][y].g += w * luminiance.y / lu;

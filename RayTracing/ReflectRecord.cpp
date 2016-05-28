@@ -45,8 +45,8 @@ void ReflectRecord::makeDiffuse(const Point & _outdir)
 
 void ReflectRecord::makeEye(const Point &_outdir)
 {
-	randomProbability = 1 / pow(_outdir.z, 3);
-	luminiance = Color{ 1, 1, 1 } * randomProbability;
+	randomProbability = 3.8421 / pow(_outdir.z, 3);
+	luminiance = Color{ 1, 1, 1 } / pow(_outdir.z, 3);
 	outdir = _outdir;
 }
 
@@ -175,14 +175,16 @@ HalfReflectRecord ReflectRecord::makeHalfOut() const
 	return HalfReflectRecord{face, outdir, hitpoint};
 }
 
-ReflectRecord ReflectRecord::reverse() const
+double ReflectRecord::queryOutCos() const
 {
-	ReflectRecord now;
-	now.type = type;
-	now.face = face;
-	now.indir = -outdir, now.outdir = -indir;
-	now.hitpoint = hitpoint;
-	now.randomProbability = randomProbability;
-	now.luminiance = luminiance;
-	return now;
+	if (!face) return 1;
+	Point nv = face->getNormalVector(hitpoint);
+	return dot(nv, outdir);
+}
+
+void ReflectRecord::reverse()
+{
+	Point tmp = indir;
+	indir = -outdir;
+	makeDiffuse(-tmp);
 }

@@ -42,6 +42,7 @@ public:
 	void adjustDiffuse(const Point &_outdir);
 
 	HalfReflectRecord makeHalfOut() const;
+	double queryOutCos() const;
 
-	ReflectRecord reverse() const;
+	void reverse();
 };
