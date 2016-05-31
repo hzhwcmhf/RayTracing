@@ -7,19 +7,20 @@ void ReflectRecord::generateDiffuse()
 	randomProbability = face->objectp->kdL;
 	type = diffuse;
 
-	double u = (double)rand() / RAND_MAX;	//按面积取样 TODO tmp
+	Point nv = face->getNormalVector(hitpoint);
+
+	double u = (double)rand() / RAND_MAX;	//按面积取样 TODO：按射出cos取样
 	double phi = rand() * PI * 2 / RAND_MAX;
 	double z = u, t = sqrt(1 - u*u);
 	double x = t*cos(phi), y = t*sin(phi);
-	randomProbability *= 0.5 / PI;
 
-	luminiance = z * face->objectp->kd;
+	double incos = -dot(nv, indir);
+	randomProbability *= 0.5 / PI;
+	randomProbability *= incos;
+
+	luminiance = z * face->objectp->kd * incos;
 
 	//旋转到法向量方向
-	Point nv = face->getNormalVector(hitpoint);
-	//double alpha = asin(-nv.y);
-	//double beta = atan2(nv.x, nv.z);
-
 	outdir = Point(x, y, z).rotate(nv);
 }
 
@@ -39,13 +40,18 @@ void ReflectRecord::makeDiffuse(const Point & _outdir)
 		return;
 	}
 
+	double incos = -dot(nv, indir);
+
 	randomProbability *= 0.5 / PI;
-	luminiance = z * face->objectp->kd;
+	randomProbability *= incos;
+
+	luminiance = z * face->objectp->kd * incos;
 }
 
 void ReflectRecord::makeEye(const Point &_outdir)
 {
-	randomProbability = 3.8421 / pow(_outdir.z, 3);
+	//randomProbability = 3.8421 / 4 / PI / pow(_outdir.z, 3);
+	randomProbability = 0.25 / PI / pow(_outdir.z, 3);
 	luminiance = Color{ 1, 1, 1 } / pow(_outdir.z, 3);
 	outdir = _outdir;
 }
@@ -62,11 +68,12 @@ void ReflectRecord::generateSpecular()
 	randomProbability = face->objectp->ksL;
 	type = specular;
 
-	luminiance = face->objectp->ks;
-
 	Point nv = face->getNormalVector(hitpoint);
-	double costheta = dot(nv, indir);
-	outdir = -costheta * nv * 2 + indir;
+	double costheta = -dot(nv, indir);
+	outdir = costheta * nv * 2 + indir;
+
+	randomProbability *= costheta;
+	luminiance = face->objectp->ks * costheta * costheta;
 }
 
 void ReflectRecord::generateRefractive()
@@ -102,6 +109,9 @@ void ReflectRecord::generateRefractive()
 
 		outdir = indir * a + nv * b;
 	}
+
+	randomProbability *= costheta;
+	luminiance *= costheta * (-dot(nv, outdir));
 }
 
 ReflectRecord ReflectRecord::randomReflect(const Face * _face, const Point & _indir, const Point & _hitPoint)
@@ -112,13 +122,13 @@ ReflectRecord ReflectRecord::randomReflect(const Face * _face, const Point & _in
 	double kdL = now.face->objectp->kdL;
 	double ksL = now.face->objectp->ksL;
 	double tmp = rand();
-	double kdlimit = RAND_MAX * kdL;
-	double kslimit = kdlimit + RAND_MAX * ksL;
+	double kdlimit = (RAND_MAX+1) * kdL;
+	double kslimit = kdlimit + (RAND_MAX+1) * ksL;
 
-	if (tmp <= kdlimit) {
+	if (tmp < kdlimit) {
 		now.generateDiffuse();
-	}else if(tmp <= kslimit){
-		now.generateRefractive();
+	}else if(tmp < kslimit){
+		now.generateSpecular();
 	}else {
 		now.generateRefractive();
 	}
@@ -175,11 +185,17 @@ HalfReflectRecord ReflectRecord::makeHalfOut() const
 	return HalfReflectRecord{face, outdir, hitpoint};
 }
 
-double ReflectRecord::queryOutCos() const
+//double ReflectRecord::queryOutCos() const
+//{
+//	if (!face) return 1;
+//	Point nv = face->getNormalVector(hitpoint);
+//	return dot(nv, outdir);
+//}
+double ReflectRecord::queryInCos() const
 {
 	if (!face) return 1;
 	Point nv = face->getNormalVector(hitpoint);
-	return dot(nv, outdir);
+	return -dot(nv, indir);
 }
 
 void ReflectRecord::reverse()
@@ -187,4 +203,11 @@ void ReflectRecord::reverse()
 	Point tmp = indir;
 	indir = -outdir;
 	makeDiffuse(-tmp);
+}
+
+double HalfReflectRecord::queryInCos() const
+{
+	if (!face) return 1;
+	Point nv = face->getNormalVector(hitpoint);
+	return -dot(nv, dir);
 }

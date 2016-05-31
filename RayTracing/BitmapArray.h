@@ -41,6 +41,7 @@ public:
 	void save(const char* filename);
 	
 	void load(const char* filename);
+	bool isEmpty() const;
 	
 	IMAGEDATA* operator[](int x);
 

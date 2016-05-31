@@ -11,12 +11,20 @@ inline int random_range(int a, int b)
 
 inline int random_pro(double p)
 {
-	return std::discrete_distribution<int>{1 - p, p}(random_engine);
+	return rand() < p * (RAND_MAX + 1);
+	//return std::discrete_distribution<int>{1 - p, p}(random_engine);
 }
 
 inline double normal_distribution(double u, double stdv, double &pro)
 {
 	double x = std::normal_distribution<double>(u, stdv)(random_engine);
 	pro *= 1 / sqrt(2 * PI) / stdv * exp(-(x - u) * (x - u) / 2 / stdv / stdv);
+	return x;
+}
+
+inline double normal_distribution(double u, double stdv)
+{
+	double x = std::normal_distribution<double>(u, stdv)(random_engine);
+	//pro *= 1 / sqrt(2 * PI) / stdv * exp(-(x - u) * (x - u) / 2 / stdv / stdv);
 	return x;
 }

@@ -10,6 +10,8 @@ struct HalfReflectRecord
 		face(_face), dir(_dir), hitpoint(_hitpoint)
 	{}
 	HalfReflectRecord() {}
+
+	double queryInCos() const;
 };
 
 class ReflectRecord
@@ -21,7 +23,11 @@ public:
 	}type;
 	const Face* face;
 	Point indir, hitpoint, outdir;
+
+	//射入cos * 出射概率 * 反射类型概率
 	double randomProbability;
+
+	//射入cos * 射出cos * BSDF
 	Color luminiance;
 
 private:
@@ -42,7 +48,8 @@ public:
 	void adjustDiffuse(const Point &_outdir);
 
 	HalfReflectRecord makeHalfOut() const;
-	double queryOutCos() const;
+	//double queryOutCos() const;
+	double queryInCos() const;
 
 	void reverse();
 };

@@ -14,7 +14,9 @@ struct SubPath
 
 	std::vector<ReflectRecord> inner;
 
+	//每一段 1/r2 * 每个点 L
 	Color luminiance;
+	//每一段 1/r2 * 每个点 P
 	double randomProbability;
 
 	SubPath(RayTracing* r);
@@ -41,7 +43,6 @@ private:
 
 	ReflectRecord shadowEyeBRDF, shadowLightBRDF;
 	SubPath shadowPath;
-	double shadowDistance;
 
 	Color luminiance;
 	double diffuseAndLightProbability;//散射次数和光源造成的取样概率
@@ -70,6 +71,7 @@ public:
 	static double debugQueryLuminianceInImage(RayTracing* r, double x, double y);
 	int debugQueryDiffuseTimes();
 	int debugEyeDiffuseTimes();
+	void debugMutateRotate() const;
 
 	std::tuple<int, int> queryImagePos();
 };

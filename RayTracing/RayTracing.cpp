@@ -13,8 +13,10 @@ BitmapArray RayTracing::MLT_process(Path & p)
 	BitmapArray barr(FinalWidth, FinalHeight);
 	
 	for (int mt = 0;mt < MutateTimes; mt++) {
-		if (mt % 20000 == 0)
-			std::cerr << mt << " ";
+		if (mt % 50000 == 0)
+			std::cerr << mt << std::endl;
+		if (mt == 455)
+			std::cerr << "";
 		auto tmp = p.mutate();
 		auto &p2 = std::get<0>(tmp);
 		double pro = std::get<1>(tmp);
@@ -29,21 +31,20 @@ BitmapArray RayTracing::MLT_process(Path & p)
 
 		//std::cerr << pro << std::endl;
 
-		static int cnt10 = 0,cnt11 = 0, cnt2 = 0, cnt3 = 0, cnt4 = 0;
-		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 0)
-			cnt2++;
-		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 1)
-			cnt3++;
-		if (p.debugQueryDiffuseTimes() == 2 && p.debugEyeDiffuseTimes() == 2)
-			cnt4++;
-		if (p.debugQueryDiffuseTimes() == 1 && p.debugEyeDiffuseTimes() == 0)
-			cnt10++;
-		if (p.debugQueryDiffuseTimes() == 1 && p.debugEyeDiffuseTimes() == 1)
-			cnt11++;
+		static int cnt[PathMaxDiffuseTimes + 1][PathMaxDiffuseTimes + 1];
+		cnt[p.debugQueryDiffuseTimes()][p.debugEyeDiffuseTimes()] ++;
 
-		if (mt % 20000 == 0) {
-			std::cerr << "!" << cnt10 << " " << cnt11 << " " << cnt2 << " " << cnt3 << " " << cnt4 << std::endl;
-			cnt10 = cnt11 = cnt2 = cnt3 = cnt4 = 0;
+		if (mt % 200000 == 0) {
+			//std::cerr << "!" << cnt10 << " " << cnt11 << " " << cnt2 << " " << cnt3 << " " << cnt4 << std::endl;
+			for (int i = 0;i <= PathMaxDiffuseTimes; i++) {
+				for (int j = 0;j <= i;j++)
+				{
+					std::cerr << cnt[i][j] << " ";
+				}
+				std::cerr << std::endl;
+			}
+			//cnt10 = cnt11 = cnt2 = cnt3 = cnt4 = 0;
+			memset(cnt, 0, sizeof(cnt));
 		}
 		if (rand() < pro * RAND_MAX) {
 			p = std::move(p2);
@@ -62,6 +63,13 @@ BitmapArray RayTracing::MLT_process(Path & p)
 	return barr;
 }
 
+RayTracing::~RayTracing()
+{
+	for (auto x : vecObjects) {
+		delete x;
+	}
+}
+
 Bitmap RayTracing::metropisLightTransport()
 {
 	static BitmapArray samples[SampleTimes];
@@ -70,7 +78,7 @@ Bitmap RayTracing::metropisLightTransport()
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
-	int startID = 500;
+	int startID = 700;
 #pragma omp parallel for
 	for (int i = 0;i < SampleTimes; i++) {
 		Path p = Path::makeRandomPathInImage(this);
@@ -87,7 +95,7 @@ Bitmap RayTracing::metropisLightTransport()
 
 	for (int wi = 0;wi < FinalWidth; wi++) {
 		for (int he = 0; he < FinalHeight; he++) {
-			for (int i = 0;i < SampleTimes; i++) {
+			for (int i = 0;i < SampleTimes; i++) if(!samples[i].isEmpty()){
 				for (int j = 0;j < 3;j++) {
 					sampleSum[wi][he].c[j] += w[i] * samples[i][wi][he].c[j];
 					/*if(samples[i][wi][he].c[j] != 0)
@@ -110,7 +118,8 @@ ReflectRecord RayTracing::queryEye()
 	ans.outdir = camera.generateDir();
 
 	ans.luminiance = Color(1, 1, 1) / pow(ans.outdir.z, 3);
-	ans.randomProbability = 3.8421 / pow(ans.outdir.z, 3);
+	//ans.randomProbability = 3.8421 / 4 / PI / pow(ans.outdir.z, 3);
+	ans.randomProbability = 0.25 / PI/  pow(ans.outdir.z, 3);
 	ans.face = nullptr;
 	return ans;
 }
@@ -146,48 +155,92 @@ const RayTracing::Camera * RayTracing::queryCamera()
 
 void RayTracing::tmpInit()
 {
-	vecObjects.emplace_back();
-	Object &room = vecObjects.back();
-	double x[2] = { -10,10 };
-	double y[2] = { -10, 10 };
-	double z[2] = { -10, 10 };
-	for (int i = 0;i < 2;i++) {
-		for (int j = 0;j < 2;j++) {
-			for (int k = 0;k < 2;k++) {
-				room.p.emplace_back(x[i],y[j],z[k]);
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -10,10 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -10, 10 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
 			}
 		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		addFace(0, 1, 2, 2);
+		addFace(1, 3, 2, 2);
+		addFace(0, 2, 4, 0);
+		addFace(2, 4, 6, 0);
+		addFace(1, 0, 4, 1);
+		addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		addFace(7, 2, 6, 4);
+		addFace(7, 2, 3, 4);
+		addFace(1, 3, 7, 3);
+		addFace(1, 5, 7, 3);
+
+		room.kdL = 1;
+		room.kd = Color(0.8, 0.8, 0.8);
+		//room.ks = Color(0.2, 0.2, 0.2);
+		room.ksL = 0;
+		room.tfL = 0;
+
+		tree.addObject(room);
 	}
-	room.pn.emplace_back(0, 0, 1);
-	room.pn.emplace_back(0, 1, 0);
-	room.pn.emplace_back(1, 0, 0);
-	room.pn.emplace_back(0, 0, -1);
-	room.pn.emplace_back(0, -1, 0);
-	room.pn.emplace_back(-1, 0, 0);
-	auto addFace = [&](int a, int b,int c, int d){
-		room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
-	};
-	addFace(0, 1, 2, 2);
-	addFace(1, 3, 2, 2);
-	addFace(0, 2, 4, 0);
-	addFace(2, 4, 6, 0);
-	addFace(1, 0, 4, 1);
-	addFace(1, 5, 4, 1);
-	addFace(4, 5, 6, 5);
-	addFace(7, 5, 6, 5);
-	addFace(7, 2, 6, 4);
-	addFace(7, 2, 3, 4);
-	addFace(1, 3, 7, 3);
-	addFace(1, 5, 7, 3);
-	
-	room.kdL = 1;
-	room.kd = Color(0.3, 0.3, 0.3);
-	room.ksL = 0;
-	room.tfL = 0;
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -10,10 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -10, 10 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
+		//addFace(0, 2, 4, 0);
+		//addFace(2, 4, 6, 0);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
+		addFace(4, 5, 6, 5);
+		addFace(7, 5, 6, 5);
+		//addFace(7, 2, 6, 4);
+		//addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3);
 
-	tree.addObject(room);
+		room.kdL = 0;
+		room.ks = Color(1, 1, 1);
+		room.ksL = 1;
+		room.tfL = 0;
+
+		tree.addObject(room);
+	}
 	tree.buildTree();
-
 
 	camera.realWidth = RealWidth;
 	camera.realHeight = RealHeight;

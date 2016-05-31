@@ -95,6 +95,7 @@ void BitmapArray::load(const char * filename)
 	if (data) delete[] data;
 
 	FILE* file = fopen(filename, "r");
+	if (!file) return;
 	int w, h;
 	fscanf(file, "%d %d", &w, &h);
 	width = w, height = h;
@@ -107,6 +108,11 @@ void BitmapArray::load(const char * filename)
 			}
 		}
 	}
+}
+
+bool BitmapArray::isEmpty() const
+{
+	return !data;
 }
 
 BitmapArray::IMAGEDATA * BitmapArray::operator[](int x)

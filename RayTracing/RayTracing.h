@@ -11,7 +11,7 @@ class RayTracing
 {
 private:
 	KDtree tree;
-	std::vector<Object> vecObjects;
+	std::vector<Object*> vecObjects;
 
 	BitmapArray MLT_process(Path &p);
 
@@ -26,6 +26,7 @@ private:
 	}camera;
 
 public:
+	~RayTracing();
 
 	Bitmap metropisLightTransport();
 
