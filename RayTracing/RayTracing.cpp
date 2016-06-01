@@ -252,17 +252,30 @@ void RayTracing::tmpInit()
 
 		tree.addObject(room);
 	}
+	//{
+	//	vecObjects.push_back(new Object(1. / 30 * 4, PI /2, 0, 0, Point(-1,-1,-1)));
+	//	Object &ball = *vecObjects.back();
+	//	ball.Load("model/mysphere.obj");
+
+	//	ball.kdL = 0;
+	//	ball.ksL = 1;
+	//	ball.ks = Color(1, 1, 1);
+	//	ball.tfL = 0;
+
+	//	tree.addObject(ball);
+	//}
+
 	{
-		vecObjects.push_back(new Object(1. / 30 * 4, PI /2, 0, 0, Point(-1,-1,-1)));
-		Object &ball = *vecObjects.back();
-		ball.Load("model/mysphere.obj");
+		vecObjects.push_back(new Object(1, 0, PI / 2, 0, Point(0, 0, 5)));
+		Object &dragon = *vecObjects.back();
+		dragon.Load("model/dragon.obj");
 
-		ball.kdL = 0;
-		ball.ksL = 1;
-		ball.ks = Color(1, 1, 1);
-		ball.tfL = 0;
+		dragon.kdL = 1;
+		dragon.ksL = 0;
+		dragon.kd = Color(1, 1, 1);
+		dragon.tfL = 0;
 
-		tree.addObject(ball);
+		tree.addObject(dragon);
 	}
 	tree.buildTree();
 

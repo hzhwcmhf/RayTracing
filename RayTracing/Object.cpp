@@ -84,7 +84,7 @@ bool Object::Parse(FILE * fp)
 			}
 
 			int v, n, t;
-			if (sscanf(buf, "%d/%d/%d", &v, &t, &n) == 3) 
+			if (sscanf(buf, "%d/%d/%d", &v, &t, &n) == 3)
 			{
 				/* v/t/n */
 
@@ -104,6 +104,26 @@ bool Object::Parse(FILE * fp)
 					printf("Error: Wrong Face at Line %d\n", lineNumber);
 					return false;
 				}
+			} else if(sscanf(buf, "%d//%d", &v, &n) == 2){
+				/* v//n */
+
+				std::array<int, 3> vIndices, vnIndices;
+
+				vIndices[0] = v;
+				vnIndices[0] = n;
+				if (fscanf(fp, "%d//%d", &vIndices[1], &vnIndices[1]) == 2 &&
+					fscanf(fp, "%d//%d", &vIndices[2], &vnIndices[2]) == 2)
+				{
+					nTriangles++;
+					vecTriangles.push_back(vIndices);
+					vecTrianglesNormal.push_back(vnIndices);
+				}
+				else
+				{
+					printf("Error: Wrong Face at Line %d\n", lineNumber);
+					return false;
+				}
+
 			} else {
 				printf("Error: Wrong Face at Line %d\n", lineNumber);
 				return false;
