@@ -84,6 +84,7 @@ void ReflectRecord::generateSpecular()
 void ReflectRecord::generateRefractive()
 {
 	randomProbability = face->objectp->tfL;
+	if (randomProbability <= eps) return;
 	type = refractive;
 
 	luminiance = face->objectp->tf;
@@ -93,31 +94,35 @@ void ReflectRecord::generateRefractive()
 	if (costheta > 0) {	//ÍâÏòÀï
 		double sintheta = sqrt(1 - costheta * costheta);
 		double theta = acos(costheta);
-		double phi = asin(sintheta * face->objectp->Ni);
+		double phi = asin(sintheta / face->objectp->Ni);
 		double gamma = theta - phi;
 
-		double a = face->objectp->Ni;
+		double a = 1. / face->objectp->Ni;
 		double b = sin(gamma) / sin(theta);
 
 		outdir = indir * a - nv * b;
+		assert(abs(abs(outdir) - 1) < eps);
 	}
 	else {
 		double sintheta = sqrt(1 - costheta * costheta);
 		double theta = acos(-costheta);
-		double sinphi = sintheta / face->objectp->Ni;
+		double sinphi = sintheta * face->objectp->Ni;
 		if (sinphi < 1) {
-			sinphi = 1;
+			//sinphi = 1;
 			double phi = asin(sinphi);
 			double gamma = phi - theta;
 
 			//double a = sin(phi) / sin(theta);
 			//double b = sin(gamma) / sin(theta);
-			double a = sin(theta) / sinphi;
-			double b = sin(gamma) / sinphi;
+			double a = sinphi / sintheta;
+			double b = sin(gamma) / sintheta;
 
-			outdir = indir * a + nv * b;
+			outdir = indir * a - nv * b;
+
+			assert(abs(abs(outdir) - 1) < eps);
 		} else {
 			outdir = costheta * nv * 2 + indir;
+			assert(abs(abs(outdir) - 1) < eps);
 		}
 	}
 

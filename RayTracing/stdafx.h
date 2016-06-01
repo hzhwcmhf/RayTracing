@@ -52,5 +52,6 @@ const double RealHeight = 1.5;
 
 inline void assert(bool x)
 {
-	if (!x) throw 1;
+	if (!x)
+		throw 1;
 }

@@ -104,6 +104,10 @@ ReflectRecord SubPath::extendAdjust(const HalfReflectRecord &_start, const SubPa
 			return nextReflect;
 		} else {
 			auto nextReflect = ReflectRecord::adjustReflect(std::get<0>(nextpos), now.dir, std::get<1>(nextpos), ori.inner[pos++]);
+			if (nextReflect.randomProbability <= eps) {
+				randomProbability = -1;
+				return ReflectRecord();
+			}
 			assert(!(isnan(nextReflect.outdir.x) || isnan(nextReflect.outdir.y) || isnan(nextReflect.outdir.z)));
 			dis += abs(nextReflect.hitpoint - now.hitpoint);
 

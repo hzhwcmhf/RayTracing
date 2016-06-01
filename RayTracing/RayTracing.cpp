@@ -16,7 +16,7 @@ BitmapArray RayTracing::MLT_process(Path & p)
 	for (int mt = 0;mt < MutateTimes; mt++) {
 		if (mt % 50000 == 0)
 			std::cerr << mt << std::endl;
-		if (mt == 285)
+		if (mt == 598)
 			std::cerr << "";
 		auto tmp = p.mutate();
 		auto &p2 = std::get<0>(tmp);
@@ -79,7 +79,7 @@ Bitmap RayTracing::metropisLightTransport()
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
-	int startID = 1100;
+	int startID = 1700;
 #pragma omp parallel for
 	for (int i = 0;i < SampleTimes; i++) {
 		Path p = Path::makeRandomPathInImage(this);
@@ -195,8 +195,8 @@ void RayTracing::tmpInit()
 		auto addFace = [&](int a, int b, int c, int d) {
 			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
 		};
-		addFace(0, 1, 2, 2);
-		addFace(1, 3, 2, 2);
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
 		addFace(0, 2, 4, 0);
 		addFace(2, 4, 6, 0);
 		addFace(1, 0, 4, 1);
@@ -210,6 +210,51 @@ void RayTracing::tmpInit()
 
 		room.kdL = 1;
 		room.kd = Color(0.3, 0.3, 0.3);
+		std::cerr << queryLuminiance(room.kd) << std::endl;
+		//room.ks = Color(0.2, 0.2, 0.2);
+		room.ksL = 0;
+		room.tfL = 0;
+
+		tree.addObject(room);
+	}
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -10,10 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -0.1, 20 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		addFace(0, 1, 2, 2);
+		addFace(1, 3, 2, 2);
+		//addFace(0, 2, 4, 0);
+		//addFace(2, 4, 6, 0);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		//addFace(7, 2, 6, 4);
+		//addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3)*
+
+		room.kdL = 1;
+		room.kd = Color(0.2, 0.1, 0.36);
+		std::cerr << queryLuminiance(room.kd) << std::endl;
 		//room.ks = Color(0.2, 0.2, 0.2);
 		room.ksL = 0;
 		room.tfL = 0;
@@ -252,7 +297,8 @@ void RayTracing::tmpInit()
 		//addFace(1, 5, 7, 3);
 
 		room.kdL = 1;
-		room.kd = Color(0.2, 0.4, 0.1);
+		room.kd = Color(0.2, 0.36, 0.1);
+		std::cerr << queryLuminiance(room.kd) << std::endl;
 		room.ks = Color(0, 0, 0);
 		room.ksL = 0;
 		room.tfL = 0;
@@ -260,7 +306,7 @@ void RayTracing::tmpInit()
 		tree.addObject(room);
 	}
 	{
-		vecObjects.push_back(new Object(1. / 30 * 4,  0, 0, 0, Point(-1,-1,0)));
+		vecObjects.push_back(new Object(1. / 30 * 4,  0, PI /2, 0, Point(0,0,0)));
 		Object &ball = *vecObjects.back();
 		ball.Load("model/mysphere.obj");
 
@@ -268,7 +314,7 @@ void RayTracing::tmpInit()
 		ball.ksL = 0;
 		ball.tfL = 1;
 		ball.tf = Color(1, 1, 1);
-		ball.Ni = 0.7;
+		ball.Ni = 1.5;
 
 		tree.addObject(ball);
 	}
