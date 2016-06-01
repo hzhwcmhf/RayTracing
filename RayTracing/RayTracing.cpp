@@ -266,13 +266,13 @@ void RayTracing::tmpInit()
 	//}
 
 	{
-		vecObjects.push_back(new Object(1, 0, PI / 2, 0, Point(0, 0, 5)));
+		vecObjects.push_back(new Object(4, 0, PI * 3 / 4, 0, Point(-2, -2, 6)));
 		Object &dragon = *vecObjects.back();
 		dragon.Load("model/dragon.obj");
 
 		dragon.kdL = 1;
 		dragon.ksL = 0;
-		dragon.kd = Color(1, 1, 1);
+		dragon.kd = Color(0.3, 0.3, 0.3);
 		dragon.tfL = 0;
 
 		tree.addObject(dragon);

@@ -221,18 +221,18 @@ bool Object::Parse(FILE * fp)
 Point Object::transform(Point p) const
 {
 	p *= scale;
-	p.rotatex(rotatex);
-	p.rotatey(rotatey);
-	p.rotatez(rotatez);
+	p = p.rotatex(rotatex);
+	p = p.rotatey(rotatey);
+	p = p.rotatez(rotatez);
 	p += pos;
 	return p;
 }
 
 Point Object::transformN(Point p) const
 {
-	p.rotatez(-rotatez);
-	p.rotatey(-rotatey);
-	p.rotatex(-rotatex);
+	p = p.rotatez(-rotatez);
+	p = p.rotatey(-rotatey);
+	p = p.rotatex(-rotatex);
 	return p;
 }
 
