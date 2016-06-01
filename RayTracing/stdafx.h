@@ -36,13 +36,13 @@ const int SampleTimes = 4;
 const int FinalWidth = 200, FinalHeight = 150;
 const int FinalRGBMax = 255;
 const int MutateTimes = 10000000;
-const int PathMaxDiffuseTimes = 1;
+const int PathMaxDiffuseTimes = 2;
 const int SubpathMaxSpecularTimes = 30;
 const double MinDistance = 1e-5;
 const double PathDiffuseProbability = 0.5;
 
-const double PathMutateRotateStrategyProbability = 0;
-const double PathMutateSplitStrategyProbability = 0;
+const double PathMutateRotateStrategyProbability = 0.8;
+const double PathMutateSplitStrategyProbability = 0.1;
 const double PathMutateRandomStrategyProbability = 0.1;
 
 

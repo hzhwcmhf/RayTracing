@@ -24,6 +24,7 @@ struct SubPath
 	//从startPos开始沿startDir拓展，获取inner、luminiance，返回end面(注意超过层数要返回)
 	ReflectRecord extend(const HalfReflectRecord &start);
 	ReflectRecord extend();
+	ReflectRecord extendAdjust(const HalfReflectRecord &start, const SubPath &ori);
 	
 
 	//emplictLight

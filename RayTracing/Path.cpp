@@ -22,6 +22,8 @@ ReflectRecord SubPath::extend()
 	luminiance = Color{ 1,1,1 };
 
 	HalfReflectRecord now = startR;
+	double dis = 0;
+
 	while (true) {
 		if (++times > SubpathMaxSpecularTimes) {
 			randomProbability = -1;
@@ -35,25 +37,84 @@ ReflectRecord SubPath::extend()
 		auto nextReflect = ReflectRecord::randomReflect(std::get<0>(nextpos), now.dir, std::get<1>(nextpos));
 		assert(!(isnan(nextReflect.outdir.x) || isnan(nextReflect.outdir.y) || isnan(nextReflect.outdir.z)));
 		
-		double dis2 = norm(nextReflect.hitpoint - now.hitpoint) + MinDistance;
+		dis += abs(nextReflect.hitpoint - now.hitpoint);
+		//double dis2 = norm(nextReflect.hitpoint - now.hitpoint) + MinDistance;
 
 		if (nextReflect.type == ReflectRecord::diffuse) {
-			luminiance *= 1. / dis2;
-			randomProbability *= 1. / dis2;
+			//luminiance *= 1. / dis2;
+			//randomProbability *= 1. / dis2;
+
+			double dis2 = dis * dis + MinDistance; //tmp
+			luminiance *= 1 / dis2;
+			randomProbability /= dis2;
 
 			endR.face = nextReflect.face;
 			endR.dir = nextReflect.indir;
 			endR.hitpoint = nextReflect.hitpoint;
 			return nextReflect;
 		}else {
-			luminiance *= nextReflect.luminiance / dis2;
-			randomProbability *= nextReflect.randomProbability / dis2;
+			luminiance *= nextReflect.luminiance;
+			randomProbability *= nextReflect.randomProbability;
 
 			now.face = nextReflect.face;
 			now.dir = nextReflect.outdir;
 			now.hitpoint = nextReflect.hitpoint;
 			inner.push_back(std::move(nextReflect));
 		}
+	}
+}
+
+ReflectRecord SubPath::extendAdjust(const HalfReflectRecord &_start, const SubPath &ori)
+{
+	startR = _start;
+
+	const KDtree* tree = rt->queryKDtree();
+	int times = 0;
+	randomProbability = 1;
+	luminiance = Color{ 1,1,1 };
+
+	HalfReflectRecord now = startR;
+	double dis = 0;
+
+	int pos = 0;
+	while (true) {
+		if (++times > SubpathMaxSpecularTimes) {
+			randomProbability = -1;
+			return ReflectRecord();
+		}
+		auto nextpos = tree->query(now.hitpoint, now.dir, now.face);
+		if (!std::get<0>(nextpos)) {
+			randomProbability = -1;
+			return ReflectRecord();
+		}
+
+		if (pos == ori.inner.size()) {
+			auto nextReflect = ReflectRecord::randomDiffuse(std::get<0>(nextpos), now.dir, std::get<1>(nextpos));
+			assert(!(isnan(nextReflect.outdir.x) || isnan(nextReflect.outdir.y) || isnan(nextReflect.outdir.z)));
+			dis += abs(nextReflect.hitpoint - now.hitpoint);
+
+			double dis2 = dis * dis + MinDistance; //tmp
+			luminiance *= 1 / dis2;
+			randomProbability /= dis2;
+
+			endR.face = nextReflect.face;
+			endR.dir = nextReflect.indir;
+			endR.hitpoint = nextReflect.hitpoint;
+			return nextReflect;
+		} else {
+			auto nextReflect = ReflectRecord::adjustReflect(std::get<0>(nextpos), now.dir, std::get<1>(nextpos), ori.inner[pos++]);
+			assert(!(isnan(nextReflect.outdir.x) || isnan(nextReflect.outdir.y) || isnan(nextReflect.outdir.z)));
+			dis += abs(nextReflect.hitpoint - now.hitpoint);
+
+			luminiance *= nextReflect.luminiance;
+			randomProbability *= nextReflect.randomProbability;
+
+			now.face = nextReflect.face;
+			now.dir = nextReflect.outdir;
+			now.hitpoint = nextReflect.hitpoint;
+			inner.push_back(std::move(nextReflect));
+		}
+
 	}
 }
 
@@ -91,16 +152,17 @@ void SubPath::reverse()
 
 	std::reverse(inner.begin(), inner.end());
 
-	double dis2 = 1;
+	double dis = 0;
 	Point lastPoint = startR.hitpoint;
 	for (auto &x : inner) {
 		x.reverse();
 		luminiance *= x.luminiance;
 		randomProbability *= x.randomProbability;
-		dis2 *= norm(x.hitpoint - lastPoint) + MinDistance;
+		dis += abs(x.hitpoint - lastPoint);
 		lastPoint = x.hitpoint;
 	}
-	dis2 *= norm(endR.hitpoint - lastPoint) + MinDistance;
+	dis += abs(endR.hitpoint - lastPoint);
+	double dis2 = dis * dis + MinDistance;
 
 	randomProbability /= dis2;
 	luminiance *= 1 / dis2;
@@ -191,14 +253,16 @@ Path Path::makeRandomPath(RayTracing * r)
 
 	//int diffuseTimes = 3;
 	//双向路径分裂位置采样
-	path.diffuseAndLightProbability /= (diffuseTimes + 1);
+	//path.diffuseAndLightProbability /= (diffuseTimes + 1);
 
 	int eyeDiffuseTimes = rand() % (diffuseTimes + 1);
 	//int eyeDiffuseTimes = rand() % (diffuseTimes) +1;
 	//int diffuseTimes = 2;
-	//int eyeDiffuseTimes = 2;
+	//int eyeDiffuseTimes = 1;
 
-	auto extendPath = [&r](std::vector<SubPath> &vPath, std::vector<ReflectRecord> &vBRDF, int times,
+	int directPathNum = 1;
+
+	auto extendPath = [&r, &directPathNum](std::vector<SubPath> &vPath, std::vector<ReflectRecord> &vBRDF, int times,
 		const ReflectRecord &startR)
 	{
 		vBRDF.push_back(startR);
@@ -207,6 +271,8 @@ Path Path::makeRandomPath(RayTracing * r)
 			ReflectRecord nextBRDF = pnow.extend(vBRDF.back().makeHalfOut());
 
 			if (nextBRDF.randomProbability <= 0) return false;
+
+			if (pnow.inner.size() == 0) directPathNum++;
 
 			vPath.push_back(std::move(pnow));
 			vBRDF.push_back(nextBRDF);
@@ -228,6 +294,7 @@ Path Path::makeRandomPath(RayTracing * r)
 		return path;
 	}
 
+	path.diffuseAndLightProbability *= directPathNum;
 	path.calLuminianceAndRandomProbability();
 
 	return path;
@@ -268,7 +335,7 @@ std::tuple<Path, double> Path::mutateRotate() const
 
 		for (int i = n; i < (int)vPath.size(); i++) {
 			SubPath pnow(p.rt);
-			ReflectRecord nextBRDF = pnow.extend(vBRDF[i].makeHalfOut());
+			ReflectRecord nextBRDF = pnow.extendAdjust(vBRDF[i].makeHalfOut(), vPath[i]);
 			if (nextBRDF.randomProbability <= 0) return false;
 
 
@@ -382,10 +449,10 @@ std::tuple<Path, double> Path::mutateSplit() const
 		assert(p.shadowPath.inner.size() == 0);
 	}
 
-	//double tmp = queryLuminiance(p.luminiance);
+	double tmp = queryLuminiance(p.luminiance);
 	p.calLuminianceAndRandomProbability();
-	//double tmp1 = queryLuminiance(p.luminiance);
-	//assert(abs(tmp1 - tmp) < eps);//!!!
+	double tmp1 = queryLuminiance(p.luminiance);
+	assert(abs(tmp1 - tmp) < eps);
 	return std::make_tuple(std::move(p), 1);
 }
 

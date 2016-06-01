@@ -15,7 +15,7 @@ BitmapArray RayTracing::MLT_process(Path & p)
 	for (int mt = 0;mt < MutateTimes; mt++) {
 		if (mt % 50000 == 0)
 			std::cerr << mt << std::endl;
-		if (mt == 455)
+		if (mt == 285)
 			std::cerr << "";
 		auto tmp = p.mutate();
 		auto &p2 = std::get<0>(tmp);
@@ -115,11 +115,22 @@ ReflectRecord RayTracing::queryEye()
 	ans.indir = Point(0,0,1); //法向量方向
 	ans.hitpoint = Point(0, 0, 0);
 
-	ans.outdir = camera.generateDir();
+	//ans.outdir = camera.generateDir();
+	double u = (double)rand() / RAND_MAX * 2 - 1; //按面积取样
+	double phi = rand() * PI * 2 / RAND_MAX;
+	double z = u, t = sqrt(1 - u*u);
+	double x = t*cos(phi), y = t*sin(phi);
 
+	ans.outdir = Point(x, y, z);
+
+
+	//需要和makeeye同时更改
 	ans.luminiance = Color(1, 1, 1) / pow(ans.outdir.z, 3);
+	if (z < 0) ans.luminiance = Color(0, 0, 0);
+	//ans.luminiance = Color(1, 1, 1) / pow(ans.outdir.z, 3);
 	//ans.randomProbability = 3.8421 / 4 / PI / pow(ans.outdir.z, 3);
-	ans.randomProbability = 0.25 / PI/  pow(ans.outdir.z, 3);
+	//ans.randomProbability = 0.25 / PI/  pow(ans.outdir.z, 3);
+	ans.randomProbability = 0.25 / PI;
 	ans.face = nullptr;
 	return ans;
 }
@@ -233,9 +244,10 @@ void RayTracing::tmpInit()
 		//addFace(1, 3, 7, 3);
 		//addFace(1, 5, 7, 3);
 
-		room.kdL = 0;
-		room.ks = Color(1, 1, 1);
-		room.ksL = 1;
+		room.kdL = 1;
+		room.kd = Color(0.2, 0.2, 0.8);
+		room.ks = Color(0, 0, 0);
+		room.ksL = 0;
 		room.tfL = 0;
 
 		tree.addObject(room);

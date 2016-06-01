@@ -43,8 +43,8 @@ public:
 	static ReflectRecord randomReflect(const Face* _face, const Point &_indir, const Point &_hitPoint);
 	//可能失败 失败时randomProbability置为负数
 	
-	//static ReflectRecord adjustReflect(const Face* _face, const Point &_indir, const Point &_hitPoint, const ReflectRecord &tar);
-	//static ReflectRecord adjustDiffuse(const Face* _face, const Point &_indir, const Point &_hitPoint, const Point &_outdir);
+	static ReflectRecord adjustReflect(const Face* _face, const Point &_indir, const Point &_hitPoint, const ReflectRecord &tar);
+	static ReflectRecord randomDiffuse(const Face* _face, const Point &_indir, const Point &_hitPoint);
 	void adjustDiffuse(const Point &_outdir);
 
 	HalfReflectRecord makeHalfOut() const;
