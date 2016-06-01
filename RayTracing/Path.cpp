@@ -303,8 +303,7 @@ Path Path::makeRandomPath(RayTracing * r)
 Path Path::makeRandomPathInImage(RayTracing * r)
 {
 	Path p = makeRandomPath(r);
-	while (p.randomProbability <= 0) p=makeRandomPath(r);
-
+	while (p.randomProbability <= 0 || p.queryInitLuminianceDivProbability() < eps) p=makeRandomPath(r);
 	return p;
 }
 

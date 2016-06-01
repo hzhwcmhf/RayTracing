@@ -19,7 +19,7 @@ public:
 	Point pos;
 
 	Object(double _scale = 1, 
-		double _rotatex = PI / 2, double _rotatey = 0, double _rotatez = 0,
+		double _rotatex = 0, double _rotatey = 0, double _rotatez = 0,
 		Point _pos = Point(0,0,0)) {
 		scale = _scale;
 		rotatex = _rotatex, rotatey = _rotatey, rotatez = _rotatez;

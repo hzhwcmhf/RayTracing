@@ -6,6 +6,7 @@
 #include "Face.h"
 #include "Object.h"
 #include "KDtree.h"
+#include "MUtility.h"
 
 
 BitmapArray RayTracing::MLT_process(Path & p)
@@ -78,7 +79,7 @@ Bitmap RayTracing::metropisLightTransport()
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
-	int startID = 1000;
+	int startID = 1100;
 #pragma omp parallel for
 	for (int i = 0;i < SampleTimes; i++) {
 		Path p = Path::makeRandomPathInImage(this);
@@ -112,11 +113,11 @@ ReflectRecord RayTracing::queryEye()
 {
 	ReflectRecord ans;
 	ans.type = ReflectRecord::eye;
-	ans.indir = Point(0,0,1); //法向量方向
+	ans.indir = Point(0,0,0);
 	ans.hitpoint = Point(0, 0, 0);
 
 	//ans.outdir = camera.generateDir();
-	double u = (double)rand() / RAND_MAX * 2 - 1; //按面积取样
+	double u = (double)rand() / RAND_MAX; //按面积取样
 	double phi = rand() * PI * 2 / RAND_MAX;
 	double z = u, t = sqrt(1 - u*u);
 	double x = t*cos(phi), y = t*sin(phi);
@@ -130,7 +131,7 @@ ReflectRecord RayTracing::queryEye()
 	//ans.luminiance = Color(1, 1, 1) / pow(ans.outdir.z, 3);
 	//ans.randomProbability = 3.8421 / 4 / PI / pow(ans.outdir.z, 3);
 	//ans.randomProbability = 0.25 / PI/  pow(ans.outdir.z, 3);
-	ans.randomProbability = 0.25 / PI;
+	ans.randomProbability = 0.5 / PI;
 	ans.face = nullptr;
 	return ans;
 }
@@ -140,16 +141,22 @@ ReflectRecord RayTracing::queryLight()
 	ReflectRecord ans;
 	ans.type = ReflectRecord::light;
 	ans.indir = Point(0, 0, 0);
-	ans.hitpoint = Point(5, 0, 0);
 
-	double u = (double)rand() / RAND_MAX * 2 -1; //按面积取样
+	double xmin = -3, xmax = 3;
+	double zmin = 7, zmax = 13;
+
+	double xpos = random_range(xmin, xmax);
+	double zpos = random_range(zmin, zmax);
+	ans.hitpoint = Point(xpos, 9.9, zpos);
+
+	double u = (double)rand() / RAND_MAX - 1; //按面积取样
 	double phi = rand() * PI * 2 / RAND_MAX;
-	double z = u, t = sqrt(1-u*u);
-	double x = t*cos(phi), y = t*sin(phi);
+	double y = u, t = sqrt(1-u*u);
+	double x = t*cos(phi), z = t*sin(phi);
 
 	ans.outdir = Point(x, y, z);
-	ans.luminiance = Color(1, 1, 1);
-	ans.randomProbability = 0.25 / PI;
+	ans.luminiance = Color(1, 1, 1) * (-y);
+	ans.randomProbability = 0.5 / PI;
 	ans.face = nullptr;
 	return ans;
 }
@@ -171,7 +178,7 @@ void RayTracing::tmpInit()
 		Object &room = *vecObjects.back();
 		double x[2] = { -10,10 };
 		double y[2] = { -10, 10 };
-		double z[2] = { -10, 10 };
+		double z[2] = { -0.1, 20 };
 		for (int i = 0;i < 2;i++) {
 			for (int j = 0;j < 2;j++) {
 				for (int k = 0;k < 2;k++) {
@@ -214,7 +221,7 @@ void RayTracing::tmpInit()
 		Object &room = *vecObjects.back();
 		double x[2] = { -10,10 };
 		double y[2] = { -10, 10 };
-		double z[2] = { -10, 10 };
+		double z[2] = { -0.1, 20 };
 		for (int i = 0;i < 2;i++) {
 			for (int j = 0;j < 2;j++) {
 				for (int k = 0;k < 2;k++) {
@@ -245,28 +252,28 @@ void RayTracing::tmpInit()
 		//addFace(1, 5, 7, 3);
 
 		room.kdL = 1;
-		room.kd = Color(0.3, 0.3, 0.3);
+		room.kd = Color(0.2, 0.4, 0.1);
 		room.ks = Color(0, 0, 0);
 		room.ksL = 0;
 		room.tfL = 0;
 
 		tree.addObject(room);
 	}
-	//{
-	//	vecObjects.push_back(new Object(1. / 30 * 4, PI /2, 0, 0, Point(-1,-1,-1)));
-	//	Object &ball = *vecObjects.back();
-	//	ball.Load("model/mysphere.obj");
-
-	//	ball.kdL = 0;
-	//	ball.ksL = 1;
-	//	ball.ks = Color(1, 1, 1);
-	//	ball.tfL = 0;
-
-	//	tree.addObject(ball);
-	//}
-
 	{
-		vecObjects.push_back(new Object(4, 0, PI * 3 / 4, 0, Point(-2, -2, 6)));
+		vecObjects.push_back(new Object(1. / 30 * 4,  0, 0, 0, Point(-1,-1,0)));
+		Object &ball = *vecObjects.back();
+		ball.Load("model/mysphere.obj");
+
+		ball.kdL = 0;
+		ball.ksL = 1;
+		ball.ks = Color(1, 1, 1);
+		ball.tfL = 0;
+
+		tree.addObject(ball);
+	}
+
+	/*{
+		vecObjects.push_back(new Object(4, 0, 0 , 0, Point(-2, -2, 6)));
 		Object &dragon = *vecObjects.back();
 		dragon.Load("model/dragon.obj");
 
@@ -276,7 +283,7 @@ void RayTracing::tmpInit()
 		dragon.tfL = 0;
 
 		tree.addObject(dragon);
-	}
+	}*/
 	tree.buildTree();
 
 	camera.realWidth = RealWidth;

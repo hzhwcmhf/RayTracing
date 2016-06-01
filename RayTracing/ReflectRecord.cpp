@@ -52,16 +52,19 @@ void ReflectRecord::makeEye(const Point &_outdir)
 {
 	//randomProbability = 3.8421 / 4 / PI / pow(_outdir.z, 3);
 	//randomProbability = 0.25 / PI / pow(_outdir.z, 3);
-	randomProbability = 0.25 / PI;
+	randomProbability = 0.5 / PI;
 	luminiance = Color{ 1, 1, 1 } / pow(_outdir.z, 3);
 	outdir = _outdir;
 }
 
 void ReflectRecord::makeLight(const Point & _outdir)
 {
-	randomProbability = 0.25 / PI;
-	luminiance = Color{ 1,1,1 };
+	//randomProbability = 0.25 / PI;
+	//luminiance = Color{ 1,1,1 };
 	outdir = _outdir;
+	luminiance = Color{ 1,1,1 } *(-outdir.y);
+	randomProbability = 0.5 / PI;
+	if (outdir.y >= 0) luminiance = Color(0, 0, 0);
 }
 
 void ReflectRecord::generateSpecular()

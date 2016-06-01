@@ -9,6 +9,11 @@ inline int random_range(int a, int b)
 	return std::uniform_int_distribution<int>(a, b)(random_engine);
 }
 
+inline double random_range(double a, double b)
+{
+	return rand() * (b - a) / RAND_MAX + a;
+}
+
 inline int random_pro(double p)
 {
 	return rand() < p * (RAND_MAX + 1);
