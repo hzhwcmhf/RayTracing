@@ -53,6 +53,7 @@ ReflectRecord SubPath::extend()
 			endR.hitpoint = nextReflect.hitpoint;
 			return nextReflect;
 		}else {
+			//assert(inner.size() <= 2);
 			luminiance *= nextReflect.luminiance;
 			randomProbability *= nextReflect.randomProbability;
 

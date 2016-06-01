@@ -265,9 +265,10 @@ void RayTracing::tmpInit()
 		ball.Load("model/mysphere.obj");
 
 		ball.kdL = 0;
-		ball.ksL = 1;
-		ball.ks = Color(1, 1, 1);
-		ball.tfL = 0;
+		ball.ksL = 0;
+		ball.tfL = 1;
+		ball.tf = Color(1, 1, 1);
+		ball.Ni = 0.7;
 
 		tree.addObject(ball);
 	}

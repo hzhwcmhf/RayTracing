@@ -103,16 +103,22 @@ void ReflectRecord::generateRefractive()
 	}
 	else {
 		double sintheta = sqrt(1 - costheta * costheta);
-		double theta = acos(costheta);
+		double theta = acos(-costheta);
 		double sinphi = sintheta / face->objectp->Ni;
-		if (sinphi > 1) sinphi = 1;
-		double phi = asin(sinphi);
-		double gamma = phi - theta;
+		if (sinphi < 1) {
+			sinphi = 1;
+			double phi = asin(sinphi);
+			double gamma = phi - theta;
 
-		double a = sin(phi) / sin(theta);
-		double b = sin(gamma) / sin(theta);
+			//double a = sin(phi) / sin(theta);
+			//double b = sin(gamma) / sin(theta);
+			double a = sin(theta) / sinphi;
+			double b = sin(gamma) / sinphi;
 
-		outdir = indir * a + nv * b;
+			outdir = indir * a + nv * b;
+		} else {
+			outdir = costheta * nv * 2 + indir;
+		}
 	}
 
 	//randomProbability *= costheta;
