@@ -17,9 +17,10 @@ public:
 	{
 		return Point{x+b.x, y+b.y, z+b.z};
 	}
-	Point operator+=(const Point &b)
+	Point& operator+=(const Point &b)
 	{
 		x += b.x, y += b.y, z += b.z;
+		return *this;
 	}
 	Point operator-(const Point &b) const
 	{
@@ -29,9 +30,10 @@ public:
 	{
 		return Point(-x, -y, -z);
 	}
-	Point operator-=(const Point &b)
+	Point& operator-=(const Point &b)
 	{
 		x -= b.x, y -= b.y, z -= b.z;
+		return *this;
 	}
 	Point operator*(double p) const
 	{
@@ -92,6 +94,31 @@ public:
 		ans.z = -x * sinb + y * sina * cosb + z * cosa * cosb;
 		return ans;
 	}
+	Point rotatez(double a) const
+	{
+		return Point(
+			x*cos(a) - y*sin(a),
+			x*sin(a) + y*cos(a),
+			z
+		);
+	}
+	Point rotatex(double a) const
+	{
+		return Point(
+			x,
+			y*cos(a) - z*sin(a),
+			y*sin(a) + z*cos(a)
+		);
+	}
+	Point rotatey(double a) const
+	{
+		return Point(
+			z*sin(a) + x*cos(a),
+			y,
+			z*cos(a) - x*sin(a)
+		);
+	}
+	
 };
 
 typedef Point* Vertex;

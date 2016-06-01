@@ -50,7 +50,7 @@ artifacts/
 *_i.h
 *.ilk
 *.meta
-*.obj
+# *.obj
 *.pch
 *.pdb
 *.pgc
@@ -248,3 +248,4 @@ ModelManifest.xml
 *.bmp
 /RayTracing/finalResultWithoutBrightness.txt
 /RayTracing/data
+*.mtl

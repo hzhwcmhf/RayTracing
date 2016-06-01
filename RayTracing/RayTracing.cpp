@@ -78,7 +78,7 @@ Bitmap RayTracing::metropisLightTransport()
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
-	int startID = 700;
+	int startID = 1000;
 #pragma omp parallel for
 	for (int i = 0;i < SampleTimes; i++) {
 		Path p = Path::makeRandomPathInImage(this);
@@ -202,7 +202,7 @@ void RayTracing::tmpInit()
 		addFace(1, 5, 7, 3);
 
 		room.kdL = 1;
-		room.kd = Color(0.8, 0.8, 0.8);
+		room.kd = Color(0.3, 0.3, 0.3);
 		//room.ks = Color(0.2, 0.2, 0.2);
 		room.ksL = 0;
 		room.tfL = 0;
@@ -245,12 +245,24 @@ void RayTracing::tmpInit()
 		//addFace(1, 5, 7, 3);
 
 		room.kdL = 1;
-		room.kd = Color(0.2, 0.2, 0.8);
+		room.kd = Color(0.3, 0.3, 0.3);
 		room.ks = Color(0, 0, 0);
 		room.ksL = 0;
 		room.tfL = 0;
 
 		tree.addObject(room);
+	}
+	{
+		vecObjects.push_back(new Object(1. / 30 * 4, PI /2, 0, 0, Point(-1,-1,-1)));
+		Object &ball = *vecObjects.back();
+		ball.Load("model/mysphere.obj");
+
+		ball.kdL = 0;
+		ball.ksL = 1;
+		ball.ks = Color(1, 1, 1);
+		ball.tfL = 0;
+
+		tree.addObject(ball);
 	}
 	tree.buildTree();
 

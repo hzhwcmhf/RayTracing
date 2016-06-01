@@ -14,7 +14,20 @@ public:
 	double kdL, ksL, tfL; //漫反射亮度，镜面反射亮度，折射亮度，保证和为1
 	double Ni; //折射率
 
-	Object() {}
+	double scale;
+	double rotatex, rotatey, rotatez;
+	Point pos;
+
+	Object(double _scale = 1, 
+		double _rotatex = PI / 2, double _rotatey = 0, double _rotatez = 0,
+		Point _pos = Point(0,0,0)) {
+		scale = _scale;
+		rotatex = _rotatex, rotatey = _rotatey, rotatez = _rotatez;
+		pos = _pos;
+	}
+
+	Point transform(Point p) const;
+	Point transformN(Point p) const;
 
 	bool Load(const char* filename);
 };

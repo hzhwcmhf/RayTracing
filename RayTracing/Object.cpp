@@ -39,7 +39,7 @@ bool Object::Parse(FILE * fp)
 						&vP.z) == 3)
 					{
 						nVertices++;
-						vecVertices.push_back(vP);
+						vecVertices.push_back(transform(vP));
 					}
 					else
 					{
@@ -57,7 +57,7 @@ bool Object::Parse(FILE * fp)
 						&vn.z) == 3)
 					{
 						nNormals++;
-						vecNormals.push_back(vn);
+						vecNormals.push_back(transformN(vn));
 					}
 					else
 					{
@@ -196,6 +196,24 @@ bool Object::Parse(FILE * fp)
 							&pn[vecTrianglesNormal[i][0]-1], &pn[vecTrianglesNormal[i][1]-1], &pn[vecTrianglesNormal[i][2]-1]);
 	}
 	return true;
+}
+
+Point Object::transform(Point p) const
+{
+	p *= scale;
+	p.rotatex(rotatex);
+	p.rotatey(rotatey);
+	p.rotatez(rotatez);
+	p += pos;
+	return p;
+}
+
+Point Object::transformN(Point p) const
+{
+	p.rotatez(-rotatez);
+	p.rotatey(-rotatey);
+	p.rotatex(-rotatex);
+	return p;
 }
 
 bool Object::Load(const char * filename)

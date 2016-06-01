@@ -82,14 +82,23 @@ KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, con
 #pragma omp section
 		{
 			std::tie(costx, borderx, lnumx, rnumx) = buildTree_calculate(fp, Node::x, box);
+			if (res->r - res->l - lnumx <= LeastDecrease ||
+				res->r - res->l - rnumx <= LeastDecrease)
+				costx = INFINITY;
 		}
 #pragma omp section
 		{
 			std::tie(costy, bordery, lnumy, rnumy) = buildTree_calculate(fp, Node::y, box);
+			if (res->r - res->l - lnumy <= LeastDecrease ||
+				res->r - res->l - rnumy <= LeastDecrease)
+				costy = INFINITY;
 		}
 #pragma omp section
 		{
 			std::tie(costz, borderz, lnumz, rnumz) = buildTree_calculate(fp, Node::z, box);
+			if (res->r - res->l - lnumz <= LeastDecrease ||
+				res->r - res->l - rnumz <= LeastDecrease)
+				costz = INFINITY;
 		}
 	}
 
