@@ -34,6 +34,7 @@ const double PI = acos(-1);
 
 const int MaxKDtreeHeight = 30;
 
+const int SampleTurns = 5;
 const int SampleTimes = 4;
 const int FinalWidth = 200, FinalHeight = 150;
 const int FinalRGBMax = 255;

@@ -278,10 +278,10 @@ std::tuple<const Face*, double> KDtree::queryNode(const Node* node, const Point 
 #endif
 			double t = queryIntersectTime(*fp[i], s, dir);
 			assert(t >= 0);
-//#ifdef _DEBUG
+#ifdef _DEBUG
 			if (t < eps)
 				std::cerr << "warning: some faces is too close to startPos" << std::endl;
-//#endif
+#endif
 			if (t> eps && t < bestt) {
 				res = fp[i], bestt = t;
 			}

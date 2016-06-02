@@ -80,32 +80,40 @@ Bitmap RayTracing::metropisLightTransport()
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
 	int startID = 2600;
+
+	for (int turn = 0; turn < SampleTurns; turn++) {
 #pragma omp parallel for
-	for (int i = 0;i < SampleTimes; i++) {
-		Path p = Path::makeRandomPathInImage(this);
-		w[i] = p.queryInitLuminianceDivProbability();
-		if (w[i] < eps) {
-			continue;
+		for (int i = 0;i < SampleTimes; i++) {
+			std::stringstream filename;
+			filename << "data/finalResultWithoutBrightness" << turn * 4 + i + startID << ".txt";
+			samples[i].load(filename.str().c_str());
+
+			if (samples[i].isEmpty()) {
+				Path p = Path::makeRandomPathInImage(this);
+				w[i] = p.queryInitLuminianceDivProbability();
+				if (w[i] < eps) {
+					continue;
+				}
+				samples[i] = MLT_process(p);
+
+				samples[i].save(filename.str().c_str());
+			}
 		}
-		samples[i] = MLT_process(p);
 
-		std::stringstream filename;
-		filename << "data/finalResultWithoutBrightness" << i + startID << ".txt";
-		samples[i].save(filename.str().c_str());
-	}
-
-	for (int wi = 0;wi < FinalWidth; wi++) {
-		for (int he = 0; he < FinalHeight; he++) {
-			for (int i = 0;i < SampleTimes; i++) if(!samples[i].isEmpty()){
-				for (int j = 0;j < 3;j++) {
-					sampleSum[wi][he].c[j] += w[i] * samples[i][wi][he].c[j];
-					/*if(samples[i][wi][he].c[j] != 0)
-						std::cerr << samples[i][wi][he].c[j] << std::endl;*/
+		for (int wi = 0;wi < FinalWidth; wi++) {
+			for (int he = 0; he < FinalHeight; he++) {
+				for (int i = 0;i < SampleTimes; i++) if (!samples[i].isEmpty()) {
+					for (int j = 0;j < 3;j++) {
+						sampleSum[wi][he].c[j] += w[i] * samples[i][wi][he].c[j];
+						/*if(samples[i][wi][he].c[j] != 0)
+							std::cerr << samples[i][wi][he].c[j] << std::endl;*/
+					}
 				}
 			}
 		}
+		sampleSum.save("finalResultWithoutBrightness.txt");
+		sampleSum.transformToBitmap(FinalRGBMax).save("tmp.bmp");
 	}
-	sampleSum.save("finalResultWithoutBrightness.txt");
 	return sampleSum.transformToBitmap(FinalRGBMax);
 }
 
