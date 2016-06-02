@@ -79,7 +79,7 @@ Bitmap RayTracing::metropisLightTransport()
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
-	int startID = 1700;
+	int startID = 2600;
 #pragma omp parallel for
 	for (int i = 0;i < SampleTimes; i++) {
 		Path p = Path::makeRandomPathInImage(this);
@@ -173,6 +173,7 @@ const RayTracing::Camera * RayTracing::queryCamera()
 
 void RayTracing::tmpInit()
 {
+	//四面
 	{
 		vecObjects.push_back(new Object());
 		Object &room = *vecObjects.back();
@@ -210,13 +211,14 @@ void RayTracing::tmpInit()
 
 		room.kdL = 1;
 		room.kd = Color(0.3, 0.3, 0.3);
-		std::cerr << queryLuminiance(room.kd) << std::endl;
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
 		//room.ks = Color(0.2, 0.2, 0.2);
 		room.ksL = 0;
 		room.tfL = 0;
 
 		tree.addObject(room);
 	}
+	//左面
 	{
 		vecObjects.push_back(new Object());
 		Object &room = *vecObjects.back();
@@ -254,13 +256,14 @@ void RayTracing::tmpInit()
 
 		room.kdL = 1;
 		room.kd = Color(0.2, 0.1, 0.36);
-		std::cerr << queryLuminiance(room.kd) << std::endl;
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
 		//room.ks = Color(0.2, 0.2, 0.2);
 		room.ksL = 0;
 		room.tfL = 0;
 
 		tree.addObject(room);
 	}
+	//右面
 	{
 		vecObjects.push_back(new Object());
 		Object &room = *vecObjects.back();
@@ -298,17 +301,20 @@ void RayTracing::tmpInit()
 
 		room.kdL = 1;
 		room.kd = Color(0.2, 0.36, 0.1);
-		std::cerr << queryLuminiance(room.kd) << std::endl;
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
 		room.ks = Color(0, 0, 0);
 		room.ksL = 0;
 		room.tfL = 0;
 
 		tree.addObject(room);
 	}
-	{
-		vecObjects.push_back(new Object(1. / 30 * 4,  0, PI /2, 0, Point(0,0,0)));
+	//球
+	/*{
+		vecObjects.push_back(new Object(0, 0, 0));
 		Object &ball = *vecObjects.back();
 		ball.Load("model/mysphere.obj");
+		//ball.replace(-4, 4, -4, 4, 15, 19);
+		ball.replace(-2, 2, -2, 2, 8, 12);
 
 		ball.kdL = 0;
 		ball.ksL = 0;
@@ -317,6 +323,36 @@ void RayTracing::tmpInit()
 		ball.Ni = 1.5;
 
 		tree.addObject(ball);
+	}*/
+
+	{
+		vecObjects.push_back(new Object(-PI / 2, 0, 0));
+		Object &cup = *vecObjects.back();
+		cup.Load("model/p2.obj");
+		cup.replace(-4, 0, -9.9, -3, 14, 18);
+
+		cup.kdL = 0;
+		cup.ksL = 0;
+		cup.tfL = 1;
+		cup.tf = Color(1, 1, 1);
+		cup.Ni = 1.5;
+
+		tree.addObject(cup);
+	}
+
+	{
+		vecObjects.push_back(new Object(0, 0, 0));
+		Object &cup = *vecObjects.back();
+		cup.Load("model/p2.obj");
+		cup.replace(2, 6, 2, 6, 13, 19.9);
+
+		cup.kdL = 0;
+		cup.ksL = 0;
+		cup.tfL = 1;
+		cup.tf = Color(1, 1, 1);
+		cup.Ni = 1.5;
+
+		tree.addObject(cup);
 	}
 
 	/*{

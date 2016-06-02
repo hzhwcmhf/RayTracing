@@ -18,16 +18,13 @@ public:
 	double rotatex, rotatey, rotatez;
 	Point pos;
 
-	Object(double _scale = 1, 
-		double _rotatex = 0, double _rotatey = 0, double _rotatez = 0,
-		Point _pos = Point(0,0,0)) {
-		scale = _scale;
+	Object(double _rotatex = 0, double _rotatey = 0, double _rotatez = 0) {
 		rotatex = _rotatex, rotatey = _rotatey, rotatez = _rotatez;
-		pos = _pos;
 	}
 
 	Point transform(Point p) const;
 	Point transformN(Point p) const;
+	void replace(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax);
 
 	bool Load(const char* filename);
 };

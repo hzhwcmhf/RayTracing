@@ -54,7 +54,7 @@ void KDtree::addObject(const Object & p)
 	}
 }
 
-KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, const BorderBox &box)
+KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, const BorderBox &box, int height)
 {
 #ifdef _DEBUG
 	G_cnt++;
@@ -104,7 +104,7 @@ KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, con
 
 	auto buildsub = [&](double borderPos, int lnum, int rnum, Node::Direction direction) {
 		if (res->r - res->l - lnum <= LeastDecrease ||
-			res->r - res->l - rnum <= LeastDecrease) {
+			res->r - res->l - rnum <= LeastDecrease || height > MaxKDtreeHeight) {
 			std::cerr << "Large Leaf:" << res->r - res->l << std::endl;
 			this->fp.insert(this->fp.end(), fp.begin(), fp.end());
 			return;
@@ -128,13 +128,13 @@ KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, con
 		rbox.squeeze(box);
 		relax(rbox.a[direction], borderPos);
 
-		res->lc = buildTree_subtree(lfp, lbox);
-		res->rc = buildTree_subtree(rfp, rbox);
+		res->lc = buildTree_subtree(lfp, lbox, height + 1);
+		res->rc = buildTree_subtree(rfp, rbox, height + 1);
 	};
 
-	if (costx < costy && costx < costz) {
+	if (costx <= costy && costx <= costz) {
 		buildsub(borderx, lnumx, rnumx, Node::x);
-	} else if (costy < costx && costy < costz) {
+	} else if (costy <= costx && costy <= costz) {
 		buildsub(bordery, lnumy, rnumy, Node::y);
 	} else {
 		buildsub(borderz, lnumz, rnumz, Node::z);
@@ -150,7 +150,11 @@ std::tuple<double, double, int, int> KDtree::buildTree_calculate(const std::vect
 		int id;
 		bool operator<(const BorderLine &b) const
 		{
-			return pos < b.pos;
+			if (pos == b.pos) {
+				return (id & 1) && (~b.id & 1);
+			}else {
+				return pos < b.pos;
+			}
 		}
 	};
 
@@ -176,31 +180,41 @@ std::tuple<double, double, int, int> KDtree::buildTree_calculate(const std::vect
 		if (~border[i - 1].id & 1) {
 			cnt++;
 			box.addFace(*fp[border[i - 1].id >> 1]);
-			tension(box.b[d], (border[i - 1].pos + border[i].pos)/2);
+			//tension(box.b[d], (border[i - 1].pos + border[i].pos)/2);
 			box.squeeze(outbox);
 		}
+		double tmp = box.b[d];
+		tension(box.b[d], (border[i - 1].pos + border[i].pos) / 2);
 		lcost[i] = cnt * box.surface();
+		box.b[d] = tmp;
 		lnum[i] = cnt;
 	}
 	lcost[bordernum] = INFINITY;
 
 	cnt = 0;
 	box.init(*fp[border[bordernum-1].id >> 1]);
-	rcost[bordernum] = 0;
+	rcost[bordernum] = 0, rnum[bordernum] = 0;
 	for (int i = bordernum - 1;i >= 1;i--) {
 		if (border[i].id & 1) {
 			cnt++;
 			box.addFace(*fp[border[i].id >> 1]);
-			relax(box.a[d], (border[i].pos + border[i-1].pos)/2);
+			//relax(box.a[d], (border[i].pos + border[i-1].pos)/2);
 			box.squeeze(outbox);
 		}
+		double tmp = box.a[d];
+		relax(box.a[d], (border[i].pos + border[i - 1].pos) / 2);
 		rcost[i] = cnt * box.surface();
+		box.a[d] = tmp;
 		rnum[i] = cnt;
 	}
 	rcost[0] = INFINITY;
+	rnum[0] = cnt;
 
 	int bestpos = 0;
 	for (int i = 1; i < bordernum; i++) if(border[i-1].pos + eps < border[i].pos){
+		double pos = (border[i - 1].pos + border[i].pos) / 2;
+		if (pos < outbox.a[d] || pos > outbox.b[d]) continue;
+		if (lnum[i] == elementnum || rnum[i] == elementnum) continue;
 		if (lcost[i] + rcost[i] < lcost[bestpos] + rcost[bestpos]) {
 			bestpos = i;
 		}
@@ -244,7 +258,7 @@ void KDtree::buildTree()
 	box.x1 = box.y1 = box.z1 = -INFINITY;
 	box.x2 = box.y2 = box.z2 = INFINITY;
 
-	root = buildTree_subtree(orifp, box);
+	root = buildTree_subtree(orifp, box, 0);
 
 #ifdef _DEBUG
 	std::cerr << "buildtree:" << G_cnt << std::endl;
@@ -264,10 +278,10 @@ std::tuple<const Face*, double> KDtree::queryNode(const Node* node, const Point 
 #endif
 			double t = queryIntersectTime(*fp[i], s, dir);
 			assert(t >= 0);
-#ifdef _DEBUG
+//#ifdef _DEBUG
 			if (t < eps)
 				std::cerr << "warning: some faces is too close to startPos" << std::endl;
-#endif
+//#endif
 			if (t> eps && t < bestt) {
 				res = fp[i], bestt = t;
 			}

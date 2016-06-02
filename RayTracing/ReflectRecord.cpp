@@ -101,7 +101,7 @@ void ReflectRecord::generateRefractive()
 		double b = sin(gamma) / sin(theta);
 
 		outdir = indir * a - nv * b;
-		assert(abs(abs(outdir) - 1) < eps);
+		//assert(abs(abs(outdir) - 1) < eps);
 	}
 	else {
 		double sintheta = sqrt(1 - costheta * costheta);
@@ -119,10 +119,10 @@ void ReflectRecord::generateRefractive()
 
 			outdir = indir * a - nv * b;
 
-			assert(abs(abs(outdir) - 1) < eps);
+			//assert(abs(abs(outdir) - 1) < eps);
 		} else {
 			outdir = costheta * nv * 2 + indir;
-			assert(abs(abs(outdir) - 1) < eps);
+			//assert(abs(abs(outdir) - 1) < eps);
 		}
 	}
 

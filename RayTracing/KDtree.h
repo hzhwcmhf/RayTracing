@@ -48,7 +48,7 @@ private:
 	const static int FaceNumOfLeaf = 16;
 	const static int LeastDecrease = 1;
 
-	Node* buildTree_subtree(const std::vector<const Face*> &fp, const BorderBox &box);
+	Node* buildTree_subtree(const std::vector<const Face*> &fp, const BorderBox &box, int height);
 	std::tuple<double, double, int, int>
 		buildTree_calculate(const std::vector<const Face*> &fp, Node::Direction d, const BorderBox &box);
 	std::tuple<std::vector<const Face*>, std::vector<const Face*>>

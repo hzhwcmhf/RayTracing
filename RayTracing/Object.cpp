@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Object.h"
+#include "KDtree.h"
 
 #pragma warning(disable:4996)
 bool Object::Parse(FILE * fp)
@@ -220,11 +221,9 @@ bool Object::Parse(FILE * fp)
 
 Point Object::transform(Point p) const
 {
-	p *= scale;
 	p = p.rotatex(rotatex);
 	p = p.rotatey(rotatey);
 	p = p.rotatez(rotatez);
-	p += pos;
 	return p;
 }
 
@@ -234,6 +233,32 @@ Point Object::transformN(Point p) const
 	p = p.rotatey(-rotatey);
 	p = p.rotatex(-rotatex);
 	return p;
+}
+
+void Object::replace(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax)
+{
+	KDtree::BorderBox box;
+	box.init(f[0]);
+	for (auto &x : p) {
+		box.addPoint(x);
+	}
+	double scale = std::min({
+		(xmax - xmin) / (box.x2 - box.x1),
+		(ymax - ymin) / (box.y2 - box.y1),
+		(zmax - zmin) / (box.z2 - box.z1)
+	});
+	for (auto &x : p) {
+		x.x = (x.x - (box.x1 + box.x2) / 2) * scale + (xmin + xmax) / 2;
+		x.y = (x.y - (box.y1 + box.y2) / 2) * scale + (ymin + ymax) / 2;
+		x.z = (x.z - (box.z1 + box.z2) / 2) * scale + (zmin + zmax) / 2;
+	}
+	std::cerr << "replace pos:"
+		<< (box.x1 - (box.x1 + box.x2) / 2) * scale + (xmin + xmax) / 2 << "-"
+		<< (box.x2 - (box.x1 + box.x2) / 2) * scale + (xmin + xmax) / 2 << ","
+		<< (box.y1 - (box.y1 + box.y2) / 2) * scale + (ymin + ymax) / 2 << "-"
+		<< (box.y2 - (box.y1 + box.y2) / 2) * scale + (ymin + ymax) / 2 << ","
+		<< (box.z1 - (box.z1 + box.z2) / 2) * scale + (zmin + zmax) / 2 << "-"
+		<< (box.z2 - (box.z1 + box.z2) / 2) * scale + (zmin + zmax) / 2 << std::endl;
 }
 
 bool Object::Load(const char * filename)
