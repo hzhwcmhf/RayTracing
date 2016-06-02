@@ -85,10 +85,10 @@ Bitmap RayTracing::metropisLightTransport()
 #pragma omp parallel for
 		for (int i = 0;i < SampleTimes; i++) {
 			std::stringstream filename;
-			filename << "data/finalResultWithoutBrightness" << turn * 4 + i + startID << ".txt";
+			filename << "data/finalResultWithoutBrightness" << turn * SampleTimes + i + startID << ".txt";
 			samples[i].load(filename.str().c_str());
 
-			if (samples[i].isEmpty()) {
+			if (samples[i].isEmpty() || OverWrite) {
 				Path p = Path::makeRandomPathInImage(this);
 				w[i] = p.queryInitLuminianceDivProbability();
 				if (w[i] < eps) {
@@ -112,7 +112,10 @@ Bitmap RayTracing::metropisLightTransport()
 			}
 		}
 		sampleSum.save("finalResultWithoutBrightness.txt");
-		sampleSum.transformToBitmap(FinalRGBMax).save("tmp.bmp");
+
+		std::stringstream tmpname;
+		tmpname << "tmp" << turn << ".bmp";
+		sampleSum.transformToBitmap(FinalRGBMax).save(tmpname.str().c_str());
 	}
 	return sampleSum.transformToBitmap(FinalRGBMax);
 }

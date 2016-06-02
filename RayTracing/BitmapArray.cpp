@@ -92,7 +92,10 @@ void BitmapArray::save(const char * filename)
 
 void BitmapArray::load(const char * filename)
 {
-	if (data) delete[] data;
+	if (data) {
+		delete[] data;
+		data = nullptr;
+	}
 
 	FILE* file = fopen(filename, "r");
 	if (!file) return;
