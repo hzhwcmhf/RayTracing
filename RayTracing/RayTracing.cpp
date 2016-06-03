@@ -79,7 +79,7 @@ Bitmap RayTracing::metropisLightTransport()
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
-	int startID = 2600;
+	int startID = 10000;
 
 	for (int turn = 0; turn < SampleTurns; turn++) {
 #pragma omp parallel for
@@ -348,31 +348,31 @@ void RayTracing::tmpInit()
 		cup.Load("model/p2.obj");
 		cup.replace(-4, 0, -9.9, -3, 14, 18);
 
-		cup.kdL = 1;
+		cup.kdL = 0;
 		cup.kd = Color(0.3, 0.3, 0.3);
 		cup.ksL = 0;
-		cup.tfL = 0;
-		cup.tf = Color(1, 1, 1);
+		cup.tfL = 1;
+		cup.tf = Color(0.95, 0.95, 0.95);
 		cup.Ni = 1.5;
 
 		tree.addObject(cup);
 	}
 
-	//{
-	//	vecObjects.push_back(new Object(PI, 0, 0));
-	//	Object &cup = *vecObjects.back();
-	//	cup.Load("model/p2.obj");
-	//	cup.replace(2, 6, 2, 6, 13, 19.9);
+	{
+		vecObjects.push_back(new Object(PI, 0, 0));
+		Object &cup = *vecObjects.back();
+		cup.Load("model/p2.obj");
+		cup.replace(2, 6, 2, 6, 13, 19.9);
 
-	//	cup.kdL = 1;
-	//	cup.kd = Color(0.3, 0.3, 0.3);
-	//	cup.ksL = 0;
-	//	cup.tfL = 0;
-	//	cup.tf = Color(1, 1, 1);
-	//	cup.Ni = 1.5;
+		cup.kdL = 0;
+		cup.kd = Color(0.3, 0.3, 0.3);
+		cup.ksL = 0;
+		cup.tfL = 1;
+		cup.tf = Color(0.95, 0.95, 0.95);
+		cup.Ni = 1.5;
 
-	//	tree.addObject(cup);
-	//}
+		tree.addObject(cup);
+	}
 
 	/*{
 		vecObjects.push_back(new Object(4, 0, 0 , 0, Point(-2, -2, 6)));
