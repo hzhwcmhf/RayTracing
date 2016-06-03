@@ -21,9 +21,14 @@ BitmapArray RayTracing::MLT_process(Path & p)
 		auto tmp = p.mutate();
 		auto &p2 = std::get<0>(tmp);
 		double pro = std::get<1>(tmp);
-		p.record(barr, 1 - pro);
-		if (pro > eps)
-			p2.record(barr, pro);
+
+		int x, y;
+		std::tie(x, y) = p.queryImagePos();
+		p.record(barr, (1 - pro) * (*initialWeights)[x][y]);
+		if (pro > eps) {
+			std::tie(x, y) = p2.queryImagePos();
+			p2.record(barr, pro * (*initialWeights)[x][y]);
+		}
 
 
 		//if(p2.queryInitLuminianceDivProbability() > eps)
@@ -64,11 +69,17 @@ BitmapArray RayTracing::MLT_process(Path & p)
 	return barr;
 }
 
+RayTracing::RayTracing()
+{
+	initialWeights = new std::array<std::array<double, FinalWidth>, FinalHeight>();
+}
+
 RayTracing::~RayTracing()
 {
 	for (auto x : vecObjects) {
 		delete x;
 	}
+	delete initialWeights;
 }
 
 Bitmap RayTracing::metropisLightTransport()
@@ -457,6 +468,18 @@ void RayTracing::tmpInit()
 
 	camera.realWidth = RealWidth;
 	camera.realHeight = RealHeight;
+
+	auto makeRegion = [&](int x1, int y1, int x2, int y2, double k) {
+		for (int i = x1; i < x2; i++) {
+			for (int j = y1; j < y2;j++) {
+				(*initialWeights)[i][j] = k;
+			}
+		}
+	};
+	makeRegion(0, 0, FinalWidth, FinalHeight, 1);
+	makeRegion(220, FinalHeight - 128, 390, FinalHeight - 67, 10);
+	makeRegion(150, 100, 270, 250, 0.5);
+	makeRegion(330, 0, 520, 250, 0.5);
 
 	//Point s = {-0.0905,9.9,9.3123 }, dir = { -0.1501,-0.9417,0.2747 };
 	//auto ppp = tree.queryBF(s, dir);

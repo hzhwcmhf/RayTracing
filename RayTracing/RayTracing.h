@@ -12,6 +12,7 @@ class RayTracing
 private:
 	KDtree tree;
 	std::vector<Object*> vecObjects;
+	
 
 	BitmapArray MLT_process(Path &p);
 
@@ -26,12 +27,16 @@ private:
 	}camera;
 
 public:
+
+	std::array<std::array<double,FinalWidth>, FinalHeight> *initialWeights;
+
+	RayTracing();
 	~RayTracing();
 
 	Bitmap metropisLightTransport();
 
-	ReflectRecord queryEye();//tmp
-	ReflectRecord queryLight();//tmp
+	ReflectRecord queryEye();
+	ReflectRecord queryLight();
 	const KDtree* queryKDtree();
 	const Camera* queryCamera();
 

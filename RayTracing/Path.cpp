@@ -198,6 +198,12 @@ void Path::calLuminianceAndRandomProbability()
 	luminiance *= shadowPath.luminiance;
 
 	randomProbability *= shadowEyeBRDF.queryInCos() * shadowLightBRDF.queryInCos();
+
+	int imagex, imagey;
+	std::tie(imagex, imagey) = queryImagePos();
+	if (imagex < FinalWidth && imagey < FinalHeight) {
+		luminiance *= 1 / ((*rt->initialWeights)[imagex][imagey]);
+	}
 }
 
 bool Path::checkShadow()
