@@ -159,21 +159,16 @@ ReflectRecord RayTracing::queryLight()
 	ans.type = ReflectRecord::light;
 	ans.indir = Point(0, 0, 0);
 
-	double xmin = -3, xmax = 3;
-	double zmin = 7, zmax = 13;
+	ans.hitpoint = Point( 0, 5, 0);
 
-	double xpos = random_range(xmin, xmax);
-	double zpos = random_range(zmin, zmax);
-	ans.hitpoint = Point(xpos, 9.9, zpos);
-
-	double u = (double)rand() / RAND_MAX - 1; //按面积取样
+	double u = (double)rand() / RAND_MAX / 2 + 0.5; //按面积取样
 	double phi = rand() * PI * 2 / RAND_MAX;
 	double y = u, t = sqrt(1-u*u);
 	double x = t*cos(phi), z = t*sin(phi);
 
 	ans.outdir = Point(x, y, z);
-	ans.luminiance = Color(1, 1, 1) * (-y);
-	ans.randomProbability = 0.5 / PI;
+	ans.luminiance = Color(1, 1, 1);
+	ans.randomProbability = 1 / PI;
 	ans.face = nullptr;
 	return ans;
 }
