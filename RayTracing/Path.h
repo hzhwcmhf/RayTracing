@@ -61,6 +61,7 @@ public:
 	Path(RayTracing* r);
 	static Path makeRandomPath(RayTracing* r);
 	static Path makeRandomPathInImage(RayTracing* r);
+	static bool makeOneDiffusePath(RayTracing* r, const Point &dir);
 
 	std::tuple<Path, double> mutateRotate() const;
 	std::tuple<Path, double> mutateSplit() const;

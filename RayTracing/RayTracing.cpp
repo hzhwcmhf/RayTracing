@@ -84,8 +84,18 @@ RayTracing::~RayTracing()
 
 Bitmap RayTracing::metropisLightTransport()
 {
+	//direct light
+	for (int i = 0;i < FinalWidth; i++) {
+		for (int j = 0;j < FinalHeight; j++) {
+			Point dir = camera.generateDir(i + 0.5, j + 0.5);
+			if (Path::makeOneDiffusePath(this, dir)) {
+				(*initialWeights)[i][j] = 10000;
+			}
+		}
+	}
+
 	static BitmapArray samples[SampleTimes];
-	static double w[SampleTimes];
+	//static double w[SampleTimes];
 	BitmapArray sampleSum(FinalWidth, FinalHeight);
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
@@ -100,17 +110,32 @@ Bitmap RayTracing::metropisLightTransport()
 			samples[i].load(filename.str().c_str());
 
 			if (samples[i].isEmpty() || OverWrite) {
-				Path p = Path::makeRandomPathInImage(this);
-				w[i] = p.queryInitLuminianceDivProbability();
-				if (w[i] < eps) {
-					continue;
-				}
-				samples[i] = MLT_process(p);
+				double w[StartPathNum];
+				std::vector<Path> wp;
 
+				for (int j = 0;j < StartPathNum; j++) {
+					wp.push_back(Path::makeRandomPathInImage(this));
+					w[j] = wp.back().queryInitLuminianceDivProbability();
+				}
+				int bestpos = discrete_distribution(w, w + StartPathNum);
+				assert(w[bestpos] > eps);
+				samples[i] = MLT_process(wp[bestpos]);
+
+				double vmax = 0;
 				for (int wi = 0;wi < FinalWidth; wi++) {
 					for (int he = 0; he < FinalHeight; he++) {
 						for (int j = 0;j < 3;j++) {
-							samples[i][wi][he].c[j] *= w[i];
+							//samples[i][wi][he].c[j] *= w[i];
+							if (vmax < samples[i][wi][he].c[j]) vmax = samples[i][wi][he].c[j];
+						}
+					}
+				}
+				for (int wi = 0;wi < FinalWidth; wi++) {
+					for (int he = 0; he < FinalHeight; he++) {
+						if ((*initialWeights)[wi][he] > 100) {
+							for (int j = 0;j < 3;j++) {
+								samples[i][wi][he].c[j] = vmax;
+							}
 						}
 					}
 				}
@@ -123,7 +148,7 @@ Bitmap RayTracing::metropisLightTransport()
 			for (int he = 0; he < FinalHeight; he++) {
 				for (int i = 0;i < SampleTimes; i++) if (!samples[i].isEmpty()) {
 					for (int j = 0;j < 3;j++) {
-						sampleSum[wi][he].c[j] += w[i] * samples[i][wi][he].c[j];
+						sampleSum[wi][he].c[j] += samples[i][wi][he].c[j];
 						/*if(samples[i][wi][he].c[j] != 0)
 							std::cerr << samples[i][wi][he].c[j] << std::endl;*/
 					}
@@ -147,7 +172,7 @@ ReflectRecord RayTracing::queryEye()
 	ans.hitpoint = Point(0, 0, 0);
 
 	//ans.outdir = camera.generateDir();
-	double u = (double)rand() / RAND_MAX; //按面积取样
+	double u = (double)(rand()+1) / (RAND_MAX+1); //按面积取样
 	double phi = rand() * PI * 2 / RAND_MAX;
 	double z = u, t = sqrt(1 - u*u);
 	double x = t*cos(phi), y = t*sin(phi);
@@ -384,7 +409,7 @@ void RayTracing::tmpInit()
 
 		tree.addObject(room);
 	}
-	//球1
+	/*//球1
 	{
 		vecObjects.push_back(new Object(0, 0, 0));
 		Object &ball = *vecObjects.back();
@@ -416,7 +441,7 @@ void RayTracing::tmpInit()
 		ball.Ni = 1.5;
 
 		tree.addObject(ball);
-	}
+	}*/
 
 	/*{
 		vecObjects.push_back(new Object(-PI / 2, 0, 0));
@@ -477,7 +502,7 @@ void RayTracing::tmpInit()
 		}
 	};
 	makeRegion(0, 0, FinalWidth, FinalHeight, 1);
-	makeRegion(220, FinalHeight - 128, 390, FinalHeight - 67, 10);
+	//makeRegion(220, FinalHeight - 128, 390, FinalHeight - 67, 10);
 	makeRegion(150, 100, 270, 250, 0.5);
 	makeRegion(330, 0, 520, 250, 0.5);
 

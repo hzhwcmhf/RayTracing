@@ -33,3 +33,9 @@ inline double normal_distribution(double u, double stdv)
 	//pro *= 1 / sqrt(2 * PI) / stdv * exp(-(x - u) * (x - u) / 2 / stdv / stdv);
 	return x;
 }
+
+template <class InputIterator>
+inline int discrete_distribution(InputIterator first, InputIterator last)
+{
+	return std::discrete_distribution<int>(first, last)(random_engine);
+}

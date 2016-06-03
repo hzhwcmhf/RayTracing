@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "BitmapArray.h"
+#include "Point.h"
 
 #pragma warning(disable:4996)
 
@@ -57,22 +58,24 @@ BitmapArray & BitmapArray::operator=(BitmapArray && b)
 Bitmap BitmapArray::transformToBitmap(int brightness)
 {
 	Bitmap res(width, height);
-	double vmax = 0;
-	double sum = 0;
+	//double vmax = 0;
+	//double sum = 0;
+	std::vector<double> vt;
 	for (int i = 0;i < width; i++) {
 		for (int j = 0;j < height;j++) {
-			for (int k = 0;k < 3;k++){
 				//vmax = (*this)[i][j].c[k];
-				sum += (*this)[i][j].c[k];
-			}
+				//sum += (*this)[i][j].c[k];
+			vt.push_back(queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }));
 		}
 	}
-	sum /= width * height * 3;
+	//sum /= width * height * 3;
+	std::nth_element(vt.begin(), vt.end(), vt.begin() + vt.size() / 2);
+	double mid = vt[vt.size() / 2];
 	for (int i = 0;i < width;i++) {
 		for (int j = 0;j < height;j++) {
 			for (int k = 0;k < 3;k++) {
 				//double tmp = (*this)[i][j].c[k] / vmax * brightness * 1.4;
-				double tmp = (*this)[i][j].c[k] / sum * brightness * 1;
+				double tmp = (*this)[i][j].c[k] / mid * brightness * 0.6;
 				res[j][i].c[k] = tmp>255?255:(BYTE)tmp;
 			}
 		}

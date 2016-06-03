@@ -253,7 +253,7 @@ Path Path::makeRandomPath(RayTracing * r)
 	ReflectRecord light = r->queryLight();
 
 	//漫反射次数采样
-	int diffuseTimes = 1;
+	int diffuseTimes = 2;
 	while (diffuseTimes < PathMaxDiffuseTimes) {
 		if (rand() > PathDiffuseProbability * RAND_MAX) break;
 		diffuseTimes++;
@@ -316,6 +316,43 @@ Path Path::makeRandomPathInImage(RayTracing * r)
 	Path p = makeRandomPath(r);
 	while (p.randomProbability <= 0 || p.queryInitLuminianceDivProbability() < eps) p=makeRandomPath(r);
 	return p;
+}
+
+bool Path::makeOneDiffusePath(RayTracing* r, const Point & dir)
+{
+	Path path(r);
+	path.diffuseAndLightProbability = 1;
+
+	ReflectRecord eye = r->queryEye();
+	eye.outdir = dir;
+	ReflectRecord light = r->queryLight();
+
+	auto extendPath = [&r](std::vector<SubPath> &vPath, std::vector<ReflectRecord> &vBRDF, int times,
+		const ReflectRecord &startR)
+	{
+		vBRDF.push_back(startR);
+		for (int i = 0;i < times; i++) {
+			SubPath pnow(r);
+			ReflectRecord nextBRDF = pnow.extend(vBRDF.back().makeHalfOut());
+
+			if (nextBRDF.randomProbability <= 0) return false;
+
+			vPath.push_back(std::move(pnow));
+			vBRDF.push_back(nextBRDF);
+		}
+		return true;
+	};
+
+	if (!extendPath(path.eyePath, path.eyeBRDF, 1, eye)) {
+		return false;
+	}
+	extendPath(path.lightPath, path.lightBRDF, 0, light);
+	if (!path.checkShadow()) {
+		return false;
+	}
+	path.calLuminianceAndRandomProbability();
+	if (queryLuminiance(path.luminiance) < eps) return false;
+	return true;
 }
 
 std::tuple<Path, double> Path::mutateRotate() const
