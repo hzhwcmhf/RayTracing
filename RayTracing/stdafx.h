@@ -35,6 +35,8 @@ const double PI = acos(-1);
 const int MaxKDtreeHeight = 30;
 
 const bool OverWrite = false;
+
+const int SampleStartID = 3500;
 const int SampleTurns = 50;
 const int SampleTimes = 4;
 const int FinalWidth = 800, FinalHeight = 600;
@@ -48,7 +50,7 @@ const double PathDiffuseProbability = 0.5;
 const double PathMutateRotateStrategyProbability = 0.9;
 const double PathMutateSplitStrategyProbability = 0.05;
 const double PathMutateRandomStrategyProbability = 0.05;
-
+const double MutateNormalSigma = 4. / FinalWidth;
 
 const double PathMutateRotateThisPointProbability = 0.7;
 const double RealWidth = 2;

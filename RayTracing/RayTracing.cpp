@@ -79,7 +79,7 @@ Bitmap RayTracing::metropisLightTransport()
 
 	//sampleSum.load("finalResultWithoutBrightness.txt");
 	//return sampleSum.transformToBitmap(FinalRGBMax);
-	int startID = 10000;
+	int startID = SampleStartID;
 
 	for (int turn = 0; turn < SampleTurns; turn++) {
 #pragma omp parallel for
