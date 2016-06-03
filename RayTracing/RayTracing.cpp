@@ -96,6 +96,14 @@ Bitmap RayTracing::metropisLightTransport()
 				}
 				samples[i] = MLT_process(p);
 
+				for (int wi = 0;wi < FinalWidth; wi++) {
+					for (int he = 0; he < FinalHeight; he++) {
+						for (int j = 0;j < 3;j++) {
+							samples[i][wi][he].c[j] *= w[i];
+						}
+					}
+				}
+
 				samples[i].save(filename.str().c_str());
 			}
 		}
@@ -159,7 +167,7 @@ ReflectRecord RayTracing::queryLight()
 	ans.type = ReflectRecord::light;
 	ans.indir = Point(0, 0, 0);
 
-	ans.hitpoint = Point( 0, 5, 0);
+	ans.hitpoint = Point( 0, 8, 30);
 
 	double u = (double)rand() / RAND_MAX / 2 + 0.5; //按面积取样
 	double phi = rand() * PI * 2 / RAND_MAX;
@@ -191,7 +199,7 @@ void RayTracing::tmpInit()
 		Object &room = *vecObjects.back();
 		double x[2] = { -10,10 };
 		double y[2] = { -10, 10 };
-		double z[2] = { -0.1, 20 };
+		double z[2] = { -0.1, 40 };
 		for (int i = 0;i < 2;i++) {
 			for (int j = 0;j < 2;j++) {
 				for (int k = 0;k < 2;k++) {
@@ -212,8 +220,8 @@ void RayTracing::tmpInit()
 		//addFace(1, 3, 2, 2);
 		addFace(0, 2, 4, 0);
 		addFace(2, 4, 6, 0);
-		addFace(1, 0, 4, 1);
-		addFace(1, 5, 4, 1);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
 		//addFace(4, 5, 6, 5);
 		//addFace(7, 5, 6, 5);
 		addFace(7, 2, 6, 4);
@@ -230,13 +238,58 @@ void RayTracing::tmpInit()
 
 		tree.addObject(room);
 	}
+	//下面
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -10,10 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -0.1, 40 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
+		//addFace(0, 2, 4, 0);
+		//addFace(2, 4, 6, 0);
+		addFace(1, 0, 4, 1);
+		addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		//addFace(7, 2, 6, 4);
+		//addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3);
+
+		room.kdL = 0.8;
+		room.kd = Color(0.3, 0.3, 0.3);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		room.ks = Color(0.1, 0.1, 0.1);
+		room.ksL = 0.2;
+		room.tfL = 0;
+
+		tree.addObject(room);
+	}
 	//左面
 	{
 		vecObjects.push_back(new Object());
 		Object &room = *vecObjects.back();
 		double x[2] = { -10,10 };
 		double y[2] = { -10, 10 };
-		double z[2] = { -0.1, 20 };
+		double z[2] = { -0.1, 40 };
 		for (int i = 0;i < 2;i++) {
 			for (int j = 0;j < 2;j++) {
 				for (int k = 0;k < 2;k++) {
@@ -281,7 +334,7 @@ void RayTracing::tmpInit()
 		Object &room = *vecObjects.back();
 		double x[2] = { -10,10 };
 		double y[2] = { -10, 10 };
-		double z[2] = { -0.1, 20 };
+		double z[2] = { -0.1, 40 };
 		for (int i = 0;i < 2;i++) {
 			for (int j = 0;j < 2;j++) {
 				for (int k = 0;k < 2;k++) {
@@ -320,13 +373,30 @@ void RayTracing::tmpInit()
 
 		tree.addObject(room);
 	}
-	//球
-	/*{
+	//球1
+	{
 		vecObjects.push_back(new Object(0, 0, 0));
 		Object &ball = *vecObjects.back();
-		ball.Load("model/mysphere.obj");
+		ball.Load("model/spheresmall.obj");
 		//ball.replace(-4, 4, -4, 4, 15, 19);
-		ball.replace(-2, 2, -2, 2, 8, 12);
+		ball.replace(-8, -2, -9.9, -4, 32, 38);
+
+		ball.kdL = 0;
+		ball.ksL = 1;
+		ball.ks = Color(1, 1, 1);
+		ball.tfL = 0;
+		//ball.tf = Color(1, 1, 1);
+		//ball.Ni = 1.5;
+
+		tree.addObject(ball);
+	}
+	//球2
+	{
+		vecObjects.push_back(new Object(0, 0, 0));
+		Object &ball = *vecObjects.back();
+		ball.Load("model/spheresmall.obj");
+		//ball.replace(-4, 4, -4, 4, 15, 19);
+		ball.replace(2, 8, -9.9, -4, 22, 28);
 
 		ball.kdL = 0;
 		ball.ksL = 0;
@@ -335,9 +405,9 @@ void RayTracing::tmpInit()
 		ball.Ni = 1.5;
 
 		tree.addObject(ball);
-	}*/
+	}
 
-	{
+	/*{
 		vecObjects.push_back(new Object(-PI / 2, 0, 0));
 		Object &cup = *vecObjects.back();
 		cup.Load("model/p2.obj");
@@ -345,8 +415,9 @@ void RayTracing::tmpInit()
 
 		cup.kdL = 0;
 		cup.kd = Color(0.3, 0.3, 0.3);
-		cup.ksL = 0;
-		cup.tfL = 1;
+		cup.ksL = 0.2;
+		cup.tf = Color(0.95, 0.95, 0.95);
+		cup.tfL = 0.8;
 		cup.tf = Color(0.95, 0.95, 0.95);
 		cup.Ni = 1.5;
 
@@ -361,13 +432,14 @@ void RayTracing::tmpInit()
 
 		cup.kdL = 0;
 		cup.kd = Color(0.3, 0.3, 0.3);
-		cup.ksL = 0;
-		cup.tfL = 1;
+		cup.ksL = 0.2;
+		cup.tf = Color(0.95, 0.95, 0.95);
+		cup.tfL = 0.8;
 		cup.tf = Color(0.95, 0.95, 0.95);
 		cup.Ni = 1.5;
 
 		tree.addObject(cup);
-	}
+	}*/
 
 	/*{
 		vecObjects.push_back(new Object(4, 0, 0 , 0, Point(-2, -2, 6)));
