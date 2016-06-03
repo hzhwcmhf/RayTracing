@@ -144,6 +144,12 @@ ReflectRecord RayTracing::queryEye()
 	//ans.randomProbability = 0.25 / PI/  pow(ans.outdir.z, 3);
 	ans.randomProbability = 0.5 / PI;
 	ans.face = nullptr;
+
+
+	//int xx, yy;
+	//std::tie(xx, yy) = this->camera.queryPos(ans.outdir);
+	//if (abs(xx-78) <= 1 && abs(yy-8)<=1)
+	//	std::cerr << '!';
 	return ans;
 }
 
@@ -342,29 +348,31 @@ void RayTracing::tmpInit()
 		cup.Load("model/p2.obj");
 		cup.replace(-4, 0, -9.9, -3, 14, 18);
 
-		cup.kdL = 0;
+		cup.kdL = 1;
+		cup.kd = Color(0.3, 0.3, 0.3);
 		cup.ksL = 0;
-		cup.tfL = 1;
+		cup.tfL = 0;
 		cup.tf = Color(1, 1, 1);
 		cup.Ni = 1.5;
 
 		tree.addObject(cup);
 	}
 
-	{
-		vecObjects.push_back(new Object(0, 0, 0));
-		Object &cup = *vecObjects.back();
-		cup.Load("model/p2.obj");
-		cup.replace(2, 6, 2, 6, 13, 19.9);
+	//{
+	//	vecObjects.push_back(new Object(PI, 0, 0));
+	//	Object &cup = *vecObjects.back();
+	//	cup.Load("model/p2.obj");
+	//	cup.replace(2, 6, 2, 6, 13, 19.9);
 
-		cup.kdL = 0;
-		cup.ksL = 0;
-		cup.tfL = 1;
-		cup.tf = Color(1, 1, 1);
-		cup.Ni = 1.5;
+	//	cup.kdL = 1;
+	//	cup.kd = Color(0.3, 0.3, 0.3);
+	//	cup.ksL = 0;
+	//	cup.tfL = 0;
+	//	cup.tf = Color(1, 1, 1);
+	//	cup.Ni = 1.5;
 
-		tree.addObject(cup);
-	}
+	//	tree.addObject(cup);
+	//}
 
 	/*{
 		vecObjects.push_back(new Object(4, 0, 0 , 0, Point(-2, -2, 6)));
@@ -382,6 +390,14 @@ void RayTracing::tmpInit()
 
 	camera.realWidth = RealWidth;
 	camera.realHeight = RealHeight;
+
+	//Point s = {-0.0905,9.9,9.3123 }, dir = { -0.1501,-0.9417,0.2747 };
+	//auto ppp = tree.queryBF(s, dir);
+	//auto pp = tree.query(s, dir);
+	//auto ans = checkPointInFace(*std::get<0>(pp), std::get<1>(pp));
+	//double xxbf = queryIntersectTime(*std::get<0>(ppp), s, dir);
+	//double xx = queryIntersectTime(*std::get<0>(pp), s, dir);
+	//auto ppppp = s + dir * xx;
 }
 
 
@@ -419,6 +435,8 @@ int main()
 
 	RayTracing r;
 	r.tmpInit();
+
+
 
 	//for(int i = 0;i<100;i++)
 	//	std::cerr << Path::debugQueryLuminianceInImage(&r, FinalWidth*i/100., FinalHeight/2) << std::endl;

@@ -23,6 +23,7 @@ public:
 		void addFace(const Face &f);
 		void squeeze(const BorderBox &o);
 		double surface() const;
+		bool contain(const Point &p) const;
 
 		friend double queryIntersectTime(const BorderBox &b, const Point &s, const Point &dir);
 		//friend double queryIntersectTimeX(const BorderBox)
@@ -38,7 +39,7 @@ private:
 		enum Direction{ x=0, y=1, z=2, leaf } direction;
 		double pos;
 		int l, r;
-		std::vector<Face*> fp;
+		//std::vector<Face*> fp;
 		BorderBox box;
 		Node *lc, *rc;
 	};

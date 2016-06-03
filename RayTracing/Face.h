@@ -107,3 +107,43 @@ inline Point Face::getNormalVector(const Point &hitpoint) const
 	Point n = ((*an) * BSC + (*bn) * CSA + (*cn) * ASB);
 	return n / abs(n);
 }
+
+//ÓÐÎÊÌâ
+//inline bool checkPointInFace(const Face & f, const Point & s)
+//{
+//	Point2 p1{ f.a->x, f.a->y }, p2{ f.b->x, f.b->y }, p3{ f.c->x, f.c->y }, ss{ s.x, s.y };
+//	double pp, a1, a2, a3;
+//	//int t1, t2, t3;
+//
+////#define DBLCMPP(p) ((p)>eps?2:((p)<-eps?0:1))
+//
+//#define POINTINTRAN pp = cross(p1, p2, p3);\
+//	if (pp > eps || pp <-eps) {\
+//		a1 = cross(p1, ss, p2);\
+//		a2 = cross(p2, ss, p3);\
+//		if (a1 <0 || a2 <0) return false;\
+//		a3 = cross(p3, ss, p1);\
+//		return a3 > 0;\
+//	}
+//
+//	POINTINTRAN;
+//
+//	p1 = { f.a->x, f.a->z };
+//	p2 = { f.b->x, f.b->z };
+//	p3 = { f.c->x, f.c->z };
+//	ss = { s.x, s.z };
+//
+//	POINTINTRAN;
+//
+//	p1 = { f.a->y, f.a->z };
+//	p2 = { f.b->y, f.b->z };
+//	p3 = { f.c->y, f.c->z };
+//	ss = { s.y, s.z };
+//
+//	POINTINTRAN;
+//
+//#undef POINTINTRAN
+//#undef DBLCMPP
+//
+//	return false;
+//}

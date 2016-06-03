@@ -46,6 +46,11 @@ double KDtree::BorderBox::surface() const
 	return (x2 - x1)*(y2 - y1) + (x2 - x1)*(z2 - z1) + (y2 - y1)*(z2 - z1);
 }
 
+bool KDtree::BorderBox::contain(const Point & p) const
+{
+	return p.x >= x1-eps && p.x <= x2+eps && p.y >= y1-eps && p.y <= y2+eps && p.z >= z1-eps && p.z <= z2+eps;
+}
+
 
 void KDtree::addObject(const Object & p)
 {
@@ -139,7 +144,7 @@ KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, con
 	} else {
 		buildsub(borderz, lnumz, rnumz, Node::z);
 	}
-
+	res->r = this->fp.size();
 	return res;
 }
 
@@ -278,6 +283,7 @@ std::tuple<const Face*, double> KDtree::queryNode(const Node* node, const Point 
 #endif
 			double t = queryIntersectTime(*fp[i], s, dir);
 			assert(t >= 0);
+			if (!node->box.contain(s + dir * t)) continue;
 #ifdef _DEBUG
 			if (t < eps)
 				std::cerr << "warning: some faces is too close to startPos" << std::endl;

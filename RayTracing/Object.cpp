@@ -229,9 +229,9 @@ Point Object::transform(Point p) const
 
 Point Object::transformN(Point p) const
 {
-	p = p.rotatez(-rotatez);
-	p = p.rotatey(-rotatey);
-	p = p.rotatex(-rotatex);
+	p = p.rotatex(rotatex);
+	p = p.rotatey(rotatey);
+	p = p.rotatez(rotatez);
 	return p;
 }
 
