@@ -495,9 +495,13 @@ void RayTracing::tmpInit()
 	camera.realHeight = RealHeight;
 
 	auto makeRegion = [&](int x1, int y1, int x2, int y2, double k) {
+		double xmid = (x1 + x2) / 2.;
+		double ymid = (y1 + y2) / 2.;
+		double diss = abs(xmid - x1) + abs(ymid - y1);
 		for (int i = x1; i < x2; i++) {
 			for (int j = y1; j < y2;j++) {
-				(*initialWeights)[i][j] = k;
+				double dis = std::abs(i - xmid) + std::abs(j - ymid);
+				(*initialWeights)[i][j] = (*initialWeights)[i][j] * dis / diss + k * (diss - dis) / diss;
 			}
 		}
 	};
