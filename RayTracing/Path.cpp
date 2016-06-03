@@ -326,7 +326,8 @@ std::tuple<Path, double> Path::mutateRotate() const
 		//if (n > 0) pro *= PathMutateRotateThisPointProbability;
 
 		double phi = normal_distribution(0, 4. / FinalWidth);
-		double theta = std::uniform_real_distribution<double>(0, 2 * PI)(random_engine);
+		double theta = random_range(0., 2 * PI);
+		//double theta = std::uniform_real_distribution<double>(0, 2 * PI)(random_engine);
 		//pro /= 2 * PI;
 		double z = cos(phi), y = sin(phi) * sin(theta), x = sin(phi) * cos(theta);
 
