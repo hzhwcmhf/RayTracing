@@ -34,11 +34,11 @@ const double PI = acos(-1);
 
 const int MaxKDtreeHeight = 30;
 
-const bool OverWrite = true;
+const bool OverWrite = false;
 
-const int SampleStartID = 4000;
-const int SampleTurns = 20;
-const int SampleTimes = 4;
+const int SampleStartID = 12500;
+const int SampleTurns = 50;
+const int SampleTimes = 16;
 const int FinalWidth = 600, FinalHeight = 600;
 const int FinalRGBMax = 255;
 const int MutateTimes = 10000000;

@@ -95,6 +95,7 @@ void BitmapArray::save(const char * filename)
 			fprintf(file, "\n");
 		}
 	}
+	fclose(file);
 }
 
 void BitmapArray::load(const char * filename)
@@ -118,6 +119,7 @@ void BitmapArray::load(const char * filename)
 			}
 		}
 	}
+	fclose(file);
 }
 
 bool BitmapArray::isEmpty() const

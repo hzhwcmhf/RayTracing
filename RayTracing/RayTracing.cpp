@@ -313,7 +313,7 @@ void RayTracing::tmpInit()
 		room.kdL = 0.8;
 		room.kd = Color(0.3, 0.3, 0.3);
 		//std::cerr << queryLuminiance(room.kd) << std::endl;
-		room.ks = Color(0.1, 0.1, 0.1);
+		room.ks = Color(0.2, 0.2, 0.2);
 		room.ksL = 0.2;
 		room.tfL = 0;
 
@@ -409,11 +409,11 @@ void RayTracing::tmpInit()
 
 		tree.addObject(room);
 	}
-	/*//Çò1
+	//Çò1
 	{
 		vecObjects.push_back(new Object(0, 0, 0));
 		Object &ball = *vecObjects.back();
-		ball.Load("model/spheresmall.obj");
+		ball.Load("model/mysphere.obj");
 		//ball.replace(-4, 4, -4, 4, 15, 19);
 		ball.replace(-8, -2, -9.9, -4, 32, 38);
 
@@ -430,7 +430,7 @@ void RayTracing::tmpInit()
 	{
 		vecObjects.push_back(new Object(0, 0, 0));
 		Object &ball = *vecObjects.back();
-		ball.Load("model/spheresmall.obj");
+		ball.Load("model/mysphere.obj");
 		//ball.replace(-4, 4, -4, 4, 15, 19);
 		ball.replace(2, 8, -9.9, -4, 22, 28);
 
@@ -441,7 +441,7 @@ void RayTracing::tmpInit()
 		ball.Ni = 1.5;
 
 		tree.addObject(ball);
-	}*/
+	}
 
 	/*{
 		vecObjects.push_back(new Object(-PI / 2, 0, 0));
