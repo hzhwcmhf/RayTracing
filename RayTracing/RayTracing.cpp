@@ -139,9 +139,10 @@ Bitmap RayTracing::metropisLightTransport()
 						}
 					}
 				}
-
 				samples[i].save(filename.str().c_str());
 			}
+
+			samples[i].limitMax();
 		}
 
 		for (int wi = 0;wi < FinalWidth; wi++) {
@@ -203,12 +204,12 @@ ReflectRecord RayTracing::queryLight()
 	ans.type = ReflectRecord::light;
 	ans.indir = Point(0, 0, 0);
 
-	ans.hitpoint = Point( 0, 8, 30);
+	ans.hitpoint = Point( 5, 0, 5);
 
-	double u = (double)rand() / RAND_MAX / 2 + 0.5; //按面积取样
+	double u = (double)rand() / RAND_MAX / 2 - 0.5; //按面积取样
 	double phi = rand() * PI * 2 / RAND_MAX;
-	double y = u, t = sqrt(1-u*u);
-	double x = t*cos(phi), z = t*sin(phi);
+	double z = u, t = sqrt(1-u*u);
+	double x = t*cos(phi), y = t*sin(phi);
 
 	ans.outdir = Point(x, y, z);
 	ans.luminiance = Color(1, 1, 1);
@@ -227,7 +228,7 @@ const RayTracing::Camera * RayTracing::queryCamera()
 	return &camera;
 }
 
-void RayTracing::tmpInit()
+void RayTracing::Init1()
 {
 	//四面
 	{
@@ -505,7 +506,11 @@ void RayTracing::tmpInit()
 			}
 		}
 	};
-	makeRegion(0, 0, FinalWidth, FinalHeight, 1);
+	for (int i = 0; i < FinalWidth; i++) {
+		for (int j = 0;j < FinalHeight; j++) {
+			(*initialWeights)[i][j] = 1;
+		}
+	}
 	//makeRegion(220, FinalHeight - 128, 390, FinalHeight - 67, 10);
 	makeRegion(150, 100, 270, 250, 0.5);
 	makeRegion(330, 0, 520, 250, 0.5);
@@ -519,6 +524,330 @@ void RayTracing::tmpInit()
 	//auto ppppp = s + dir * xx;
 }
 
+void RayTracing::Init2()
+{
+	//4面
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -5,5 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -0.1, 15 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
+		addFace(0, 2, 4, 0);
+		addFace(2, 4, 6, 0);
+		addFace(1, 0, 4, 1);
+		addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		addFace(7, 2, 6, 4);
+		addFace(7, 2, 3, 4);
+		addFace(1, 3, 7, 3);
+		addFace(1, 5, 7, 3);
+
+		room.kdL = 1;
+		room.kd = Color(0.3, 0.3, 0.3);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		room.ksL = 0;
+		room.tfL = 0;
+		room.rerotate(-PI / 4, 0, 0);
+
+		tree.addObject(room);
+	}
+
+	//左面
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -5,5 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -0.1, 15 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		addFace(0, 1, 2, 2);
+		addFace(1, 3, 2, 2);
+		//addFace(0, 2, 4, 0);
+		//addFace(2, 4, 6, 0);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		//addFace(7, 2, 6, 4);
+		//addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3)*
+
+		room.kdL = 1;
+		room.kd = Color(0.2, 0.1, 0.36);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		//room.ks = Color(0.2, 0.2, 0.2);
+		room.ksL = 0;
+		room.tfL = 0;
+		room.rerotate(-PI / 4, 0, 0);
+		tree.addObject(room);
+
+	}
+
+	//光源
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { 3,7 };
+		double y[2] = { -2, 2 };
+		double z[2] = { 4, 20 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
+		addFace(0, 2, 4, 0);
+		addFace(2, 4, 6, 0);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		//addFace(7, 2, 6, 4);
+		//addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3);
+
+		room.kdL = 1;
+		room.kd = Color(0.3, 0.3, 0.3);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		room.ksL = 0;
+		room.tfL = 0;
+		//room.rerotate(-PI / 4, 0, 0);
+
+		tree.addObject(room);
+	}
+
+	//右面
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -5,5 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -0.1, 15 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
+		//addFace(0, 2, 4, 0);
+		//addFace(2, 4, 6, 0);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
+		addFace(4, 5, 6, 5);
+		addFace(7, 5, 6, 5);
+		//addFace(7, 2, 6, 4);
+		//addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3);
+
+		room.kdL = 1;
+		room.kd = Color(0.2, 0.36, 0.1);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		room.ks = Color(0, 0, 0);
+		room.ksL = 0;
+		room.tfL = 0;
+		room.rerotate(-PI / 4, 0, 0);
+		tree.addObject(room);
+	}
+
+	/*
+	//球1
+	{
+		vecObjects.push_back(new Object(0, 0, 0));
+		Object &ball = *vecObjects.back();
+		ball.Load("model/mysphere.obj");
+		//ball.replace(-4, 4, -4, 4, 15, 19);
+		ball.replace(-8, -2, -9.9, -4, 32, 38);
+
+		ball.kdL = 0;
+		ball.ksL = 1;
+		ball.ks = Color(1, 1, 1);
+		ball.tfL = 0;
+		//ball.tf = Color(1, 1, 1);
+		//ball.Ni = 1.5;
+
+		tree.addObject(ball);
+	}
+	//球2
+	{
+		vecObjects.push_back(new Object(0, 0, 0));
+		Object &ball = *vecObjects.back();
+		ball.Load("model/mysphere.obj");
+		//ball.replace(-4, 4, -4, 4, 15, 19);
+		ball.replace(2, 8, -9.9, -4, 22, 28);
+
+		ball.kdL = 0;
+		ball.ksL = 0;
+		ball.tfL = 1;
+		ball.tf = Color(1, 1, 1);
+		ball.Ni = 1.5;
+
+		tree.addObject(ball);
+	}*/
+
+	/*{
+	vecObjects.push_back(new Object(-PI / 2, 0, 0));
+	Object &cup = *vecObjects.back();
+	cup.Load("model/p2.obj");
+	cup.replace(-4, 0, -9.9, -3, 14, 18);
+
+	cup.kdL = 0;
+	cup.kd = Color(0.3, 0.3, 0.3);
+	cup.ksL = 0.2;
+	cup.tf = Color(0.95, 0.95, 0.95);
+	cup.tfL = 0.8;
+	cup.tf = Color(0.95, 0.95, 0.95);
+	cup.Ni = 1.5;
+
+	tree.addObject(cup);
+	}
+
+	{
+	vecObjects.push_back(new Object(PI, 0, 0));
+	Object &cup = *vecObjects.back();
+	cup.Load("model/p2.obj");
+	cup.replace(2, 6, 2, 6, 13, 19.9);
+
+	cup.kdL = 0;
+	cup.kd = Color(0.3, 0.3, 0.3);
+	cup.ksL = 0.2;
+	cup.tf = Color(0.95, 0.95, 0.95);
+	cup.tfL = 0.8;
+	cup.tf = Color(0.95, 0.95, 0.95);
+	cup.Ni = 1.5;
+
+	tree.addObject(cup);
+	}*/
+
+	{
+		vecObjects.push_back(new Object(0, 0 , 0));
+		Object &dragon = *vecObjects.back();
+		dragon.Load("model/dragon.obj");
+		dragon.replace(0, 2, -9.999, -8, 10, 12);
+
+		dragon.kdL = 1;
+		dragon.ksL = 0;
+		dragon.kd = Color(0.3, 0.3, 0.3);
+		dragon.tfL = 0;
+		dragon.rerotate(-PI / 4, 0, 0);
+		tree.addObject(dragon);
+	}
+
+
+	{
+		vecObjects.push_back(new Object(0, 0, 0));
+		Object &huan = *vecObjects.back();
+		huan.Load("model/yuanhuan.obj");
+		huan.replace(-3, 3, -9.999, -9.5, 7, 13);
+
+		huan.kdL = 0;
+		huan.kd = Color(0.3, 0.3, 0.3);
+		huan.ksL = 1;
+		huan.ks = Color(0.8, 0.8, 0.8);
+		//cup.tfL = 0;
+		//cup.tf = Color(0.95, 0.95, 0.95);
+		//cup.Ni = 1.5;
+		huan.rerotate(-PI / 4, 0, 0);
+
+		tree.addObject(huan);
+	}
+
+
+	tree.buildTree();
+
+	camera.realWidth = RealWidth;
+	camera.realHeight = RealHeight;
+
+	auto makeRegion = [&](int x1, int y1, int x2, int y2, double k) {
+		double xmid = (x1 + x2) / 2.;
+		double ymid = (y1 + y2) / 2.;
+		double diss = abs(xmid - x1) + abs(ymid - y1);
+		for (int i = x1; i < x2; i++) {
+			for (int j = y1; j < y2;j++) {
+				double dis = std::abs(i - xmid) + std::abs(j - ymid);
+				(*initialWeights)[i][j] = (*initialWeights)[i][j] * dis / diss + k * (diss - dis) / diss;
+			}
+		}
+	};
+	for (int i = 0; i < FinalWidth; i++) {
+		for (int j = 0;j < FinalHeight; j++) {
+			(*initialWeights)[i][j] = 1;
+		}
+	}
+	//makeRegion(0, 0, FinalWidth, FinalHeight, 1);
+	//makeRegion(220, FinalHeight - 128, 390, FinalHeight - 67, 10);
+	//makeRegion(150, 100, 270, 250, 0.5);
+	//makeRegion(330, 0, 520, 250, 0.5);
+
+	//Point s = {-0.0905,9.9,9.3123 }, dir = { -0.1501,-0.9417,0.2747 };
+	//auto ppp = tree.queryBF(s, dir);
+	//auto pp = tree.query(s, dir);
+	//auto ans = checkPointInFace(*std::get<0>(pp), std::get<1>(pp));
+	//double xxbf = queryIntersectTime(*std::get<0>(ppp), s, dir);
+	//double xx = queryIntersectTime(*std::get<0>(pp), s, dir);
+	//auto ppppp = s + dir * xx;
+}
 
 
 //折射强度和角度有关吗？？？
@@ -553,7 +882,7 @@ int main()
 	//std::cerr << clock() << std::endl;
 
 	RayTracing r;
-	r.tmpInit();
+	r.Init2();
 
 
 

@@ -36,9 +36,9 @@ const int MaxKDtreeHeight = 30;
 
 const bool OverWrite = false;
 
-const int SampleStartID = 12500;
+const int SampleStartID = 5000;
 const int SampleTurns = 50;
-const int SampleTimes = 16;
+const int SampleTimes = 4;
 const int FinalWidth = 600, FinalHeight = 600;
 const int FinalRGBMax = 255;
 const int MutateTimes = 10000000;
@@ -54,8 +54,8 @@ const double PathMutateRandomStrategyProbability = 0.05;
 const double MutateNormalSigma = 4. / FinalWidth;
 
 const double PathMutateRotateThisPointProbability = 0.7;
-const double RealWidth = 1;
-const double RealHeight = 1;
+const double RealWidth = 0.5;
+const double RealHeight = 0.5;
 
 inline void assert(bool x)
 {

@@ -111,6 +111,8 @@ KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, con
 		if (res->r - res->l - lnum <= LeastDecrease ||
 			res->r - res->l - rnum <= LeastDecrease || height > MaxKDtreeHeight) {
 			std::cerr << "Large Leaf:" << res->r - res->l << std::endl;
+			//if (res->r - res->l >= 100)
+			//	std::cerr << "!";
 			this->fp.insert(this->fp.end(), fp.begin(), fp.end());
 			return;
 		}

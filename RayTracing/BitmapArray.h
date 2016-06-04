@@ -38,6 +38,7 @@ public:
 
 	Bitmap transformToBitmap(int brightness);
 	
+	void limitMax();
 	void save(const char* filename);
 	
 	void load(const char* filename);

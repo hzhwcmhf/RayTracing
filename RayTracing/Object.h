@@ -25,6 +25,7 @@ public:
 	Point transform(Point p) const;
 	Point transformN(Point p) const;
 	void replace(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax);
+	void rerotate(double rotatex, double rotatey, double rotatez);
 
 	bool Load(const char* filename);
 };

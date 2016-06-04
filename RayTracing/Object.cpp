@@ -261,6 +261,19 @@ void Object::replace(double xmin, double xmax, double ymin, double ymax, double 
 		<< (box.z2 - (box.z1 + box.z2) / 2) * scale + (zmin + zmax) / 2 << std::endl;
 }
 
+void Object::rerotate(double rotatex, double rotatey, double rotatez)
+{
+	this->rotatex = rotatex;
+	this->rotatey = rotatey;
+	this->rotatez = rotatez;
+	for (auto &x : p) {
+		x = transform(x);
+	}
+	for (auto &x : pn) {
+		x = transformN(x);
+	}
+}
+
 bool Object::Load(const char * filename)
 {
 	FILE* fp = fopen(filename, "r");

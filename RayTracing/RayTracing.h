@@ -40,6 +40,7 @@ public:
 	const KDtree* queryKDtree();
 	const Camera* queryCamera();
 
-	void tmpInit();//tmp
+	void Init1();
+	void Init2();
 
 };

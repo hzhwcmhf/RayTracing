@@ -83,6 +83,33 @@ Bitmap BitmapArray::transformToBitmap(int brightness)
 	return res;
 }
 
+void BitmapArray::limitMax()
+{
+	//double vmax = 0;
+	//double sum = 0;
+	std::vector<double> vt;
+	for (int i = 0;i < width; i++) {
+		for (int j = 0;j < height;j++) {
+			//vmax = (*this)[i][j].c[k];
+			//sum += (*this)[i][j].c[k];
+			vt.push_back(queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }));
+		}
+	}
+	//sum /= width * height * 3;
+	std::nth_element(vt.begin(), vt.end(), vt.begin() + vt.size() / 2);
+	double mid = vt[vt.size() / 2];
+	for (int i = 0;i < width;i++) {
+		for (int j = 0;j < height;j++) {
+			if (queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }) > mid * 3) {
+				double f = queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }) / mid / 3;
+				for(int k = 0;k < 3;k++){
+					(*this)[i][j].c[k] /= f;
+				}
+			}
+		}
+	}
+}
+
 void BitmapArray::save(const char * filename)
 {
 	FILE* file = fopen(filename, "w");
