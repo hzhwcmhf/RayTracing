@@ -36,7 +36,7 @@ const int MaxKDtreeHeight = 30;
 
 const bool OverWrite = false;
 
-const int SampleStartID = 5000;
+const int SampleStartID = 50000;
 const int SampleTurns = 50;
 const int SampleTimes = 4;
 const int FinalWidth = 600, FinalHeight = 600;
@@ -48,14 +48,15 @@ const int SubpathMaxSpecularTimes = 30;
 const double MinDistance = 1e-5;
 const double PathDiffuseProbability = 0.5;
 
+const double PathDirectLightProbability = 0.1;
 const double PathMutateRotateStrategyProbability = 0.9;
 const double PathMutateSplitStrategyProbability = 0.05;
 const double PathMutateRandomStrategyProbability = 0.05;
 const double MutateNormalSigma = 4. / FinalWidth;
 
 const double PathMutateRotateThisPointProbability = 0.7;
-const double RealWidth = 0.5;
-const double RealHeight = 0.5;
+const double RealWidth = 1;
+const double RealHeight = 1;
 
 inline void assert(bool x)
 {

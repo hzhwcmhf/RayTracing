@@ -89,7 +89,7 @@ Bitmap RayTracing::metropisLightTransport()
 		for (int j = 0;j < FinalHeight; j++) {
 			Point dir = camera.generateDir(i + 0.5, j + 0.5);
 			if (Path::makeOneDiffusePath(this, dir)) {
-				(*initialWeights)[i][j] = 10000;
+				(*initialWeights)[i][j] = 20;
 			}
 		}
 	}
@@ -121,7 +121,7 @@ Bitmap RayTracing::metropisLightTransport()
 				assert(w[bestpos] > eps);
 				samples[i] = MLT_process(wp[bestpos]);
 
-				double vmax = 0;
+				/*double vmax = 0;
 				for (int wi = 0;wi < FinalWidth; wi++) {
 					for (int he = 0; he < FinalHeight; he++) {
 						for (int j = 0;j < 3;j++) {
@@ -138,7 +138,7 @@ Bitmap RayTracing::metropisLightTransport()
 							}
 						}
 					}
-				}
+				}*/
 				samples[i].save(filename.str().c_str());
 			}
 
@@ -204,12 +204,14 @@ ReflectRecord RayTracing::queryLight()
 	ans.type = ReflectRecord::light;
 	ans.indir = Point(0, 0, 0);
 
-	ans.hitpoint = Point( 5, 0, 5);
+	//ans.hitpoint = Point( 5, 0, 5);
+	ans.hitpoint = Point(0, 8, 30);
 
-	double u = (double)rand() / RAND_MAX / 2 - 0.5; //按面积取样
+	//double u = (double)rand() / RAND_MAX / 2 - 0.5; //按面积取样
+	double u = (double)rand() / RAND_MAX / 2 + 0.5; //按面积取样
 	double phi = rand() * PI * 2 / RAND_MAX;
-	double z = u, t = sqrt(1-u*u);
-	double x = t*cos(phi), y = t*sin(phi);
+	double y = u, t = sqrt(1-u*u);
+	double x = t*cos(phi), z = t*sin(phi);
 
 	ans.outdir = Point(x, y, z);
 	ans.luminiance = Color(1, 1, 1);
@@ -414,7 +416,7 @@ void RayTracing::Init1()
 	{
 		vecObjects.push_back(new Object(0, 0, 0));
 		Object &ball = *vecObjects.back();
-		ball.Load("model/mysphere.obj");
+		ball.Load("model/sphereComplex.obj");
 		//ball.replace(-4, 4, -4, 4, 15, 19);
 		ball.replace(-8, -2, -9.9, -4, 32, 38);
 
@@ -431,8 +433,7 @@ void RayTracing::Init1()
 	{
 		vecObjects.push_back(new Object(0, 0, 0));
 		Object &ball = *vecObjects.back();
-		ball.Load("model/mysphere.obj");
-		//ball.replace(-4, 4, -4, 4, 15, 19);
+		ball.Load("model/sphereComplex.obj");
 		ball.replace(2, 8, -9.9, -4, 22, 28);
 
 		ball.kdL = 0;
@@ -447,21 +448,21 @@ void RayTracing::Init1()
 	/*{
 		vecObjects.push_back(new Object(-PI / 2, 0, 0));
 		Object &cup = *vecObjects.back();
-		cup.Load("model/p2.obj");
-		cup.replace(-4, 0, -9.9, -3, 14, 18);
+		cup.Load("model/p.obj");
+		cup.replace(-8, 0, -9.9, -5, 25, 32);
 
 		cup.kdL = 0;
 		cup.kd = Color(0.3, 0.3, 0.3);
-		cup.ksL = 0.2;
-		cup.tf = Color(0.95, 0.95, 0.95);
-		cup.tfL = 0.8;
-		cup.tf = Color(0.95, 0.95, 0.95);
+		cup.ksL = 0.05;
+		cup.tf = Color(0.25, 0.28, 0.25);
+		cup.tfL = 0.95;
+		cup.tf = Color(0.9, 0.92, 0.9);
 		cup.Ni = 1.5;
 
 		tree.addObject(cup);
-	}
+	}*/
 
-	{
+	/*{
 		vecObjects.push_back(new Object(PI, 0, 0));
 		Object &cup = *vecObjects.back();
 		cup.Load("model/p2.obj");
@@ -882,7 +883,7 @@ int main()
 	//std::cerr << clock() << std::endl;
 
 	RayTracing r;
-	r.Init2();
+	r.Init1();
 
 
 

@@ -121,7 +121,7 @@ KDtree::Node * KDtree::buildTree_subtree(const std::vector<const Face*> &fp, con
 
 		std::vector<const Face*> lfp, rfp;
 		std::tie(lfp, rfp) = buildTree_partition(fp, direction, borderPos);
-		assert(lfp.size() > 1 && rfp.size() > 1);
+		assert(lfp.size() >= 1 && rfp.size() >= 1);
 		assert(lfp.size() == lnum && rfp.size() == rnum);
 
 		BorderBox lbox, rbox;

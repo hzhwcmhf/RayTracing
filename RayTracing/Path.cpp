@@ -254,13 +254,19 @@ Path Path::makeRandomPath(RayTracing * r)
 
 	//漫反射次数采样
 	int diffuseTimes = 2;
-	while (diffuseTimes < PathMaxDiffuseTimes) {
-		if (rand() > PathDiffuseProbability * RAND_MAX) break;
-		diffuseTimes++;
+	if (rand() < PathDirectLightProbability * RAND_MAX) {
+		diffuseTimes = 1;
 		path.diffuseAndLightProbability *= PathDiffuseProbability;
+	} else {
+		path.diffuseAndLightProbability *= 1-PathDiffuseProbability;
+		while (diffuseTimes < PathMaxDiffuseTimes) {
+			if (rand() > PathDiffuseProbability * RAND_MAX) break;
+			diffuseTimes++;
+			path.diffuseAndLightProbability *= PathDiffuseProbability;
+		}
+		if (diffuseTimes != PathMaxDiffuseTimes)
+			path.diffuseAndLightProbability *= 1 - PathDiffuseProbability;
 	}
-	if (diffuseTimes != PathMaxDiffuseTimes)
-		path.diffuseAndLightProbability *= 1 - PathDiffuseProbability;
 
 	//int diffuseTimes = 3;
 	//双向路径分裂位置采样
@@ -352,6 +358,8 @@ bool Path::makeOneDiffusePath(RayTracing* r, const Point & dir)
 	}
 	path.calLuminianceAndRandomProbability();
 	if (queryLuminiance(path.luminiance) < eps) return false;
+
+	if (path.eyePath[0].inner.size() != 0) return false;
 	return true;
 }
 

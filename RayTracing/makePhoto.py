@@ -75,7 +75,12 @@ def work1():
 def work2():
 	im = Image.open('makephoto.bmp')
 	#im2 = im.filter(ImageFilter.MedianFilter())
-	im2 = im.filter(ImageFilter.SMOOTH())
+	im2 = im.filter(ImageFilter.MedianFilter())
+	#im2 = im2.filter(ImageFilter.SMOOTH())
+	#im2 = im2.filter(ImageFilter.SMOOTH_MORE())
+	#im2 = im2.filter(ImageFilter.SHARPEN())
+	#im2 = im2.filter(ImageFilter.EDGE_ENHANCE())
+	
 	im2.save('makephoto1.bmp')
 
 #work1()

@@ -101,9 +101,9 @@ inline bool checkPointInFace(const Face & f, const Point & s)
 
 inline Point Face::getNormalVector(const Point &hitpoint) const
 {
-	double ASB = norm(cross(*a, hitpoint, *b));
-	double BSC = norm(cross(*b, hitpoint, *c));
-	double CSA = norm(cross(*c, hitpoint, *a));
+	double ASB = abs(cross(*a, hitpoint, *b));
+	double BSC = abs(cross(*b, hitpoint, *c));
+	double CSA = abs(cross(*c, hitpoint, *a));
 	Point n = ((*an) * BSC + (*bn) * CSA + (*cn) * ASB);
 	return n / abs(n);
 }
