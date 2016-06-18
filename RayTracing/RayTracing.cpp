@@ -16,7 +16,7 @@ BitmapArray RayTracing::MLT_process(Path & p)
 	for (int mt = 0;mt < MutateTimes; mt++) {
 		if (mt % 50000 == 0)
 			std::cerr << mt << std::endl;
-		if (mt == 598)
+		if (mt == 1)
 			std::cerr << "";
 		auto tmp = p.mutate();
 		auto &p2 = std::get<0>(tmp);
@@ -204,11 +204,13 @@ ReflectRecord RayTracing::queryLight()
 	ans.type = ReflectRecord::light;
 	ans.indir = Point(0, 0, 0);
 
-	//ans.hitpoint = Point( 5, 0, 5);
-	ans.hitpoint = Point(0, 8, 30);
+	//ans.hitpoint = Point(0, 8, 30);
+	//ans.hitpoint = Point(5, 0, 5);
+	ans.hitpoint = Point(5, 10, 20);
 
-	//double u = (double)rand() / RAND_MAX / 2 - 0.5; //按面积取样
 	double u = (double)rand() / RAND_MAX / 2 + 0.5; //按面积取样
+	//double u = (double)rand() / RAND_MAX / 2 - 0.5; //按面积取样
+
 	double phi = rand() * PI * 2 / RAND_MAX;
 	double y = u, t = sqrt(1-u*u);
 	double x = t*cos(phi), z = t*sin(phi);
@@ -850,11 +852,263 @@ void RayTracing::Init2()
 	//auto ppppp = s + dir * xx;
 }
 
+void RayTracing::Init3()
+{
+	//4面
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -5,5 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -0.1, 30 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
+		addFace(0, 2, 4, 0);
+		addFace(2, 4, 6, 0);
+		addFace(1, 0, 4, 1);
+		addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		addFace(7, 2, 6, 4);
+		addFace(7, 2, 3, 4);
+		addFace(1, 3, 7, 3);
+		addFace(1, 5, 7, 3);
+
+		room.kdL = 1;
+		room.kd = Color(0.3, 0.3, 0.3);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		room.ksL = 0;
+		room.tfL = 0;
+		room.rerotate(-PI / 4, 0, 0);
+
+		tree.addObject(room);
+	}
+
+	//左面
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -5,5 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -0.1, 30 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		addFace(0, 1, 2, 2);
+		addFace(1, 3, 2, 2);
+		//addFace(0, 2, 4, 0);
+		//addFace(2, 4, 6, 0);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		//addFace(7, 2, 6, 4);
+		//addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3)*
+
+		room.kdL = 1;
+		room.kd = Color(0.2, 0.1, 0.36);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		//room.ks = Color(0.2, 0.2, 0.2);
+		room.ksL = 0;
+		room.tfL = 0;
+		room.rerotate(-PI / 4, 0, 0);
+		tree.addObject(room);
+
+	}
+
+	//光源
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { 2,8 };
+		double y[2] = { -2, 11 };
+		double z[2] = { 17, 23 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
+		//addFace(0, 2, 4, 0);
+		//addFace(2, 4, 6, 0);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
+		//addFace(4, 5, 6, 5);
+		//addFace(7, 5, 6, 5);
+		addFace(7, 2, 6, 4);
+		addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3);
+
+		room.kdL = 1;
+		room.kd = Color(0.3, 0.3, 0.3);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		room.ksL = 0;
+		room.tfL = 0;
+		//room.rerotate(-PI / 4, 0, 0);
+
+		tree.addObject(room);
+	}
+
+	//右面
+	{
+		vecObjects.push_back(new Object());
+		Object &room = *vecObjects.back();
+		double x[2] = { -5,5 };
+		double y[2] = { -10, 10 };
+		double z[2] = { -0.1, 30 };
+		for (int i = 0;i < 2;i++) {
+			for (int j = 0;j < 2;j++) {
+				for (int k = 0;k < 2;k++) {
+					room.p.emplace_back(x[i], y[j], z[k]);
+				}
+			}
+		}
+		room.pn.emplace_back(0, 0, 1);
+		room.pn.emplace_back(0, 1, 0);
+		room.pn.emplace_back(1, 0, 0);
+		room.pn.emplace_back(0, 0, -1);
+		room.pn.emplace_back(0, -1, 0);
+		room.pn.emplace_back(-1, 0, 0);
+		auto addFace = [&](int a, int b, int c, int d) {
+			room.f.emplace_back(&room, &room.p[a], &room.p[b], &room.p[c], &room.pn[d], &room.pn[d], &room.pn[d]);
+		};
+		//addFace(0, 1, 2, 2);
+		//addFace(1, 3, 2, 2);
+		//addFace(0, 2, 4, 0);
+		//addFace(2, 4, 6, 0);
+		//addFace(1, 0, 4, 1);
+		//addFace(1, 5, 4, 1);
+		addFace(4, 5, 6, 5);
+		addFace(7, 5, 6, 5);
+		//addFace(7, 2, 6, 4);
+		//addFace(7, 2, 3, 4);
+		//addFace(1, 3, 7, 3);
+		//addFace(1, 5, 7, 3);
+
+		room.kdL = 1;
+		room.kd = Color(0.2, 0.36, 0.1);
+		//std::cerr << queryLuminiance(room.kd) << std::endl;
+		room.ks = Color(0, 0, 0);
+		room.ksL = 0;
+		room.tfL = 0;
+		room.rerotate(-PI / 4, 0, 0);
+		tree.addObject(room);
+	}
+
+	{
+		vecObjects.push_back(new Object(-PI / 2, 0, 0));
+		Object &basket = *vecObjects.back();
+		basket.Load("model/p.obj");
+		basket.replace(-2, 2, -9.999, -7, 6, 10);
+
+		basket.kdL = 0.1;
+		basket.kd = Color(0.05, 0.08, 0.05);
+		basket.ksL = 0;
+		basket.kd = Color(0.3, 0.32, 0.3);
+		basket.tfL = 0.9;
+		basket.tf = Color(0.9, 0.92, 0.9);
+		basket.Ni = 1.5;
+
+		basket.rerotate(-PI / 4, 0, 0);
+		tree.addObject(basket);
+	}
+
+
+	/*{
+		vecObjects.push_back(new Object(0, 0, 0));
+		Object &huan = *vecObjects.back();
+		huan.Load("model/yuanhuan.obj");
+		huan.replace(-3, 3, -9.999, -9.5, 7, 13);
+
+		huan.kdL = 0;
+		huan.kd = Color(0.3, 0.3, 0.3);
+		huan.ksL = 1;
+		huan.ks = Color(0.8, 0.8, 0.8);
+		//cup.tfL = 0;
+		//cup.tf = Color(0.95, 0.95, 0.95);
+		//cup.Ni = 1.5;
+		huan.rerotate(-PI / 4, 0, 0);
+
+		tree.addObject(huan);
+	}*/
+
+
+	tree.buildTree();
+
+	camera.realWidth = RealWidth;
+	camera.realHeight = RealHeight;
+
+	auto makeRegion = [&](int x1, int y1, int x2, int y2, double k) {
+		double xmid = (x1 + x2) / 2.;
+		double ymid = (y1 + y2) / 2.;
+		double diss = abs(xmid - x1) + abs(ymid - y1);
+		for (int i = x1; i < x2; i++) {
+			for (int j = y1; j < y2;j++) {
+				double dis = std::abs(i - xmid) + std::abs(j - ymid);
+				(*initialWeights)[i][j] = (*initialWeights)[i][j] * dis / diss + k * (diss - dis) / diss;
+			}
+		}
+	};
+	for (int i = 0; i < FinalWidth; i++) {
+		for (int j = 0;j < FinalHeight; j++) {
+			(*initialWeights)[i][j] = 1;
+		}
+	}
+	//makeRegion(0, 0, FinalWidth, FinalHeight, 1);
+	makeRegion(130, FinalHeight - 518, 450, FinalHeight - 358, 0.3);
+	//makeRegion(150, 100, 270, 250, 0.5);
+	//makeRegion(330, 0, 520, 250, 0.5);
+}
 
 //折射强度和角度有关吗？？？
 
 int main()
 {
+	srand(time(0));
 	//Object obj;
 	//obj.Load("model/fixed.perfect.dragon.100K.0.07.obj");
 	//KDtree tree;
@@ -883,7 +1137,7 @@ int main()
 	//std::cerr << clock() << std::endl;
 
 	RayTracing r;
-	r.Init1();
+	r.Init3();
 
 
 

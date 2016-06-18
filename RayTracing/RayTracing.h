@@ -42,5 +42,6 @@ public:
 
 	void Init1();
 	void Init2();
+	void Init3();
 
 };

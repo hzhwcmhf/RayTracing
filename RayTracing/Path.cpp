@@ -35,6 +35,10 @@ ReflectRecord SubPath::extend()
 			return ReflectRecord();
 		}
 		auto nextReflect = ReflectRecord::randomReflect(std::get<0>(nextpos), now.dir, std::get<1>(nextpos));
+		if (nextReflect.randomProbability <= 0) {
+			randomProbability = -1;
+			return ReflectRecord();
+		}
 		assert(!(isnan(nextReflect.outdir.x) || isnan(nextReflect.outdir.y) || isnan(nextReflect.outdir.z)));
 		
 		dis += abs(nextReflect.hitpoint - now.hitpoint);
@@ -91,6 +95,10 @@ ReflectRecord SubPath::extendAdjust(const HalfReflectRecord &_start, const SubPa
 
 		if (pos == ori.inner.size()) {
 			auto nextReflect = ReflectRecord::randomDiffuse(std::get<0>(nextpos), now.dir, std::get<1>(nextpos));
+			if (nextReflect.randomProbability <= eps) {
+				randomProbability = -1;
+				return ReflectRecord();
+			}
 			assert(!(isnan(nextReflect.outdir.x) || isnan(nextReflect.outdir.y) || isnan(nextReflect.outdir.z)));
 			dis += abs(nextReflect.hitpoint - now.hitpoint);
 

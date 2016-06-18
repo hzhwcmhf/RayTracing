@@ -15,6 +15,10 @@ void ReflectRecord::generateDiffuse()
 	double x = t*cos(phi), y = t*sin(phi);
 
 	double incos = -dot(nv, indir);
+	if (incos < 0) {
+		randomProbability = -1;
+		return;
+	}
 	randomProbability *= 0.5 / PI;
 	randomProbability *= incos;
 
@@ -41,6 +45,11 @@ void ReflectRecord::makeDiffuse(const Point & _outdir)
 	}
 
 	double incos = -dot(nv, indir);
+
+	if (incos < 0) {
+		randomProbability = -1;
+		return;
+	}
 
 	randomProbability *= 0.5 / PI;
 	randomProbability *= incos;
@@ -121,6 +130,7 @@ void ReflectRecord::generateRefractive()
 
 			//assert(abs(abs(outdir) - 1) < eps);
 		} else {
+			luminiance = Color{ 1,1,1 };
 			outdir = costheta * nv * 2 + indir;
 			//assert(abs(abs(outdir) - 1) < eps);
 		}
