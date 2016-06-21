@@ -36,7 +36,7 @@ const int MaxKDtreeHeight = 30;
 
 const bool OverWrite = false;
 
-const int SampleStartID = 50000;
+const int SampleStartID = 70000;
 const int SampleTurns = 50;
 const int SampleTimes = 16;
 const int FinalWidth = 600, FinalHeight = 600;

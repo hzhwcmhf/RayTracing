@@ -75,7 +75,7 @@ Bitmap BitmapArray::transformToBitmap(int brightness)
 		for (int j = 0;j < height;j++) {
 			for (int k = 0;k < 3;k++) {
 				//double tmp = (*this)[i][j].c[k] / vmax * brightness * 1.4;
-				double tmp = (*this)[i][j].c[k] / mid * brightness * 0.5;
+				double tmp = (*this)[i][j].c[k] / mid * brightness * 0.8;
 				res[j][i].c[k] = tmp>255?255:(BYTE)tmp;
 			}
 		}
