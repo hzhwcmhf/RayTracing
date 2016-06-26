@@ -219,15 +219,15 @@ ReflectRecord RayTracing::queryLight()
 
 	//注意根据图修改，再修改ReflectRecord::makeLight
 	//ans.hitpoint = Point(0, 8, 30);
-	//ans.hitpoint = Point(5, 0, 5);
-	ans.hitpoint = Point(5, 10, 20);
+	ans.hitpoint = Point(5, 0, 5);
+	//ans.hitpoint = Point(5, 10, 20);
 
-	double u = (double)rand() / RAND_MAX / 2 + 0.5; //按面积取样
-	//double u = (double)rand() / RAND_MAX / 2 - 0.5; //按面积取样
+	//double u = (double)rand() / RAND_MAX / 2 + 0.5; //按面积取样
+	double u = (double)rand() / RAND_MAX / 2 - 0.5; //按面积取样
 
 	double phi = rand() * PI * 2 / RAND_MAX;
-	double y = u, t = sqrt(1-u*u);
-	double x = t*cos(phi), z = t*sin(phi);
+	double z = u, t = sqrt(1-u*u);
+	double x = t*cos(phi), y = t*sin(phi);
 
 	ans.outdir = Point(x, y, z);
 	ans.luminiance = Color(1, 1, 1);
@@ -816,7 +816,7 @@ void RayTracing::Init2()
 		vecObjects.push_back(new Object(0, 0, 0));
 		Object &huan = *vecObjects.back();
 		huan.Load("model/yuanhuan.obj");
-		huan.replace(-3, 3, -9.999, -9.5, 7, 13);
+		huan.replace(-3, 3, -9.999, -9.2, 7, 13);
 
 		huan.kdL = 0;
 		huan.kd = Color(0.3, 0.3, 0.3);
@@ -1123,7 +1123,7 @@ int main()
 	srand(time(0));
 
 	RayTracing r;
-	r.Init3();
+	r.Init2();
 
 	auto image = r.metropisLightTransport();
 	image.save("1.bmp");
