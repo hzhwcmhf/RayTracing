@@ -16,12 +16,13 @@ BitmapArray RayTracing::MLT_process(Path & p)
 	for (int mt = 0;mt < MutateTimes; mt++) {
 		if (mt % 50000 == 0)
 			std::cerr << mt << std::endl;
-		if (mt == 1)
-			std::cerr << "";
+
+		//生成变异
 		auto tmp = p.mutate();
 		auto &p2 = std::get<0>(tmp);
 		double pro = std::get<1>(tmp);
 
+		//记录颜色
 		int x, y;
 		std::tie(x, y) = p.queryImagePos();
 		p.record(barr, (1 - pro) * (*initialWeights)[x][y]);
@@ -37,9 +38,9 @@ BitmapArray RayTracing::MLT_process(Path & p)
 
 		//std::cerr << pro << std::endl;
 
+		//输出调试信息
 		static int cnt[PathMaxDiffuseTimes + 1][PathMaxDiffuseTimes + 1];
 		cnt[p.debugQueryDiffuseTimes()][p.debugEyeDiffuseTimes()] ++;
-
 		if (mt % 200000 == 0) {
 			//std::cerr << "!" << cnt10 << " " << cnt11 << " " << cnt2 << " " << cnt3 << " " << cnt4 << std::endl;
 			for (int i = 0;i <= PathMaxDiffuseTimes; i++) {
@@ -52,6 +53,8 @@ BitmapArray RayTracing::MLT_process(Path & p)
 			//cnt10 = cnt11 = cnt2 = cnt3 = cnt4 = 0;
 			memset(cnt, 0, sizeof(cnt));
 		}
+
+		//概率接受转移
 		if (rand() < pro * RAND_MAX) {
 			p = std::move(p2);
 		}
@@ -98,27 +101,35 @@ Bitmap RayTracing::metropisLightTransport()
 	//static double w[SampleTimes];
 	BitmapArray sampleSum(FinalWidth, FinalHeight);
 
-	//sampleSum.load("finalResultWithoutBrightness.txt");
-	//return sampleSum.transformToBitmap(FinalRGBMax);
+	sampleSum.load("finalResultWithoutBrightness.txt");
+	return sampleSum.transformToBitmap(FinalRGBMax);
 	int startID = SampleStartID;
 
+	//记录循环
 	for (int turn = 0; turn < SampleTurns; turn++) {
+
+		//迭代循环
 #pragma omp parallel for
 		for (int i = 0;i < SampleTimes; i++) {
+			//尝试读入记录
 			std::stringstream filename;
 			filename << "data/finalResultWithoutBrightness" << turn * SampleTimes + i + startID << ".txt";
 			samples[i].load(filename.str().c_str());
 
+			//如果没有可以读入的，生成
 			if (samples[i].isEmpty() || OverWrite) {
 				double w[StartPathNum];
 				std::vector<Path> wp;
 
+				//生成初始候选
 				for (int j = 0;j < StartPathNum; j++) {
 					wp.push_back(Path::makeRandomPathInImage(this));
 					w[j] = wp.back().queryInitLuminianceDivProbability();
 				}
 				int bestpos = discrete_distribution(w, w + StartPathNum);
 				assert(w[bestpos] > eps);
+
+				//MLT主函数
 				samples[i] = MLT_process(wp[bestpos]);
 
 				/*double vmax = 0;
@@ -145,6 +156,7 @@ Bitmap RayTracing::metropisLightTransport()
 			samples[i].limitMax();
 		}
 
+		//进行叠加 输出中途图片
 		for (int wi = 0;wi < FinalWidth; wi++) {
 			for (int he = 0; he < FinalHeight; he++) {
 				for (int i = 0;i < SampleTimes; i++) if (!samples[i].isEmpty()) {
@@ -158,6 +170,7 @@ Bitmap RayTracing::metropisLightTransport()
 		}
 		sampleSum.save("finalResultWithoutBrightness.txt");
 
+		//记录未归一化数据
 		std::stringstream tmpname;
 		tmpname << "tmp" << turn << ".bmp";
 		sampleSum.transformToBitmap(FinalRGBMax).save(tmpname.str().c_str());
@@ -204,6 +217,7 @@ ReflectRecord RayTracing::queryLight()
 	ans.type = ReflectRecord::light;
 	ans.indir = Point(0, 0, 0);
 
+	//注意根据图修改，再修改ReflectRecord::makeLight
 	//ans.hitpoint = Point(0, 8, 30);
 	//ans.hitpoint = Point(5, 0, 5);
 	ans.hitpoint = Point(5, 10, 20);
@@ -1104,47 +1118,12 @@ void RayTracing::Init3()
 	//makeRegion(330, 0, 520, 250, 0.5);
 }
 
-//折射强度和角度有关吗？？？
-
 int main()
 {
 	srand(time(0));
-	//Object obj;
-	//obj.Load("model/fixed.perfect.dragon.100K.0.07.obj");
-	//KDtree tree;
-	//tree.addObject(obj);
-	//tree.buildTree();
-	//srand((int)time(0));
-	//for (int i = 1;i <= 10000;i++) {
-	//	Point s{ rand() % 10 - 5.,(rand() % 1000)/100. - 5.,rand() % 10 - 5. };
-	//	Point d = obj.p[rand() % obj.p.size()] - s;
-	//	auto p = tree.query(s, d);
-	//	if(std::get<0>(p))std::cerr << std::get<0>(p) << std::endl;
-	//	/*const Face* q = tree.queryBF(s, d);
-	//	if(q)std::cerr << q << std::endl;
-	//	if (p != q) {
-	//		tree.query(s, d);
-	//		double a = queryIntersectTime(*p, s, d);
-	//		double b = queryIntersectTime(*q, s, d);
-	//		//a = b;
-	//		std::cerr << "";
-	//		assert(abs(a - b) < eps);
-	//	}*/
-	//	
-	//	
-	//	//assert(p == q);
-	//}
-	//std::cerr << clock() << std::endl;
 
 	RayTracing r;
 	r.Init3();
-
-
-
-	//for(int i = 0;i<100;i++)
-	//	std::cerr << Path::debugQueryLuminianceInImage(&r, FinalWidth*i/100., FinalHeight/2) << std::endl;
-	////std::cerr << Path::debugQueryLuminianceInImage(&r, FinalWidth / 4, FinalHeight / 2) << std::endl;
-	//return 0;
 
 	auto image = r.metropisLightTransport();
 	image.save("1.bmp");

@@ -74,6 +74,7 @@ void ReflectRecord::makeLight(const Point & _outdir)
 	luminiance = Color{ 1,1,1 };
 	randomProbability = 1 / PI;
 	if (outdir.y < 0.5) luminiance = Color(0, 0, 0);
+	//×¢ÒâÅäºÏRayTracing::queryLight()ÐÞ¸Ä
 }
 
 void ReflectRecord::generateSpecular()

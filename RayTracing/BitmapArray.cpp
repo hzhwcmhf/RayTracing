@@ -75,7 +75,8 @@ Bitmap BitmapArray::transformToBitmap(int brightness)
 		for (int j = 0;j < height;j++) {
 			for (int k = 0;k < 3;k++) {
 				//double tmp = (*this)[i][j].c[k] / vmax * brightness * 1.4;
-				double tmp = (*this)[i][j].c[k] / mid * brightness * 0.5;
+				//按中位数为0.6*255亮度
+				double tmp = (*this)[i][j].c[k] / mid * brightness * 0.6;
 				res[j][i].c[k] = tmp>255?255:(BYTE)tmp;
 			}
 		}
@@ -95,13 +96,13 @@ void BitmapArray::limitMax()
 			vt.push_back(queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }));
 		}
 	}
-	//sum /= width * height * 3;
 	std::nth_element(vt.begin(), vt.end(), vt.begin() + vt.size() / 2);
 	double mid = vt[vt.size() / 2];
 	for (int i = 0;i < width;i++) {
 		for (int j = 0;j < height;j++) {
-			if (queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }) > mid * 3) {
-				double f = queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }) / mid / 3;
+			if (queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }) > mid * 4) {
+				//按中位数的4倍限制最大亮度
+				double f = queryLuminiance(Color{ (*this)[i][j].r, (*this)[i][j].g, (*this)[i][j].b }) / mid / 4;
 				for(int k = 0;k < 3;k++){
 					(*this)[i][j].c[k] /= f;
 				}

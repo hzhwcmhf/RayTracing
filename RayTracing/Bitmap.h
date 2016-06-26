@@ -5,6 +5,7 @@
 */
 struct IMAGEDATA
 {
+	//公用体，能够通过两种方式访问
 	union {
 		struct {
 			BYTE b;

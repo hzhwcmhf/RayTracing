@@ -28,9 +28,12 @@ public:
 		objectp(obj), a(_a), b(_b), c(_c), an(_an), bn(_bn), cn(_cn)
 	{}
 
+	//查询射线与面相交时间
 	inline friend double queryIntersectTime(const Face &f, const Point &s, const Point &dir);
+	//查询点是否在面内（保证点在面上）
 	inline friend bool checkPointInFace(const Face &f, const Point &s);
 
+	//插值获得法向量
 	inline Point getNormalVector(const Point &hitpoint) const;
 };
 
@@ -51,7 +54,8 @@ inline bool checkPointInFace(const Face & f, const Point & s)
 	int t1, t2, t3;
 
 #define DBLCMPP(p) ((p)>eps?2:((p)<-eps?0:1))
-
+//投影到二维上判断是否在三角形内
+//使用位运算加快逻辑运算
 #define POINTINTRAN pp = cross(p1, p2, p3);\
 	if (pp > eps || pp <-eps) {\
 		a1 = cross(p1, ss, p2);\
