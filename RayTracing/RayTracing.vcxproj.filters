@@ -48,9 +48,6 @@
     <ClInclude Include="BitmapArray.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="BRDF.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ReflectRecord.h">
       <Filter>头文件</Filter>
     </ClInclude>

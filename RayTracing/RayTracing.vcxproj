@@ -226,7 +226,6 @@
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="BitmapArray.h" />
-    <ClInclude Include="BRDF.h" />
     <ClInclude Include="Face.h" />
     <ClInclude Include="KDtree.h" />
     <ClInclude Include="MUtility.h" />
