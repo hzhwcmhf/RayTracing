@@ -98,8 +98,8 @@ Bitmap RayTracing::metropisLightTransport()
 	//static double w[SampleTimes];
 	BitmapArray sampleSum(FinalWidth, FinalHeight);
 
-	//sampleSum.load("finalResultWithoutBrightness.txt");
-	//return sampleSum.transformToBitmap(FinalRGBMax);
+	sampleSum.load("finalResultWithoutBrightness.txt");
+	return sampleSum.transformToBitmap(FinalRGBMax);
 	int startID = SampleStartID;
 
 	for (int turn = 0; turn < SampleTurns; turn++) {
@@ -434,11 +434,12 @@ void RayTracing::Init1()
 		vecObjects.push_back(new Object(0, 0, 0));
 		Object &ball = *vecObjects.back();
 		ball.Load("model/sphereComplex.obj");
-		ball.replace(2, 8, -9.9, -4, 22, 28);
+		ball.replace(3, 9, -9.9, -4, 23, 29);
 
 		ball.kdL = 0;
-		ball.ksL = 0;
-		ball.tfL = 1;
+		ball.ksL = 0.1;
+		ball.ks = Color(0.1, 0.1, 0.1);
+		ball.tfL = 0.9;
 		ball.tf = Color(1, 1, 1);
 		ball.Ni = 1.5;
 
